@@ -42,8 +42,12 @@ list = ntuple_to_pd(path,run_list,ch_list)
 for run, ch in iter.product(range(0,np.size(run_list)),range(0,np.size(ch_list))):
     
     charge = chargeconfig[ch_list[ch]]
-    
-    rate, nevents, dfout = charge_map(list[run][ch],run_list[run],ch_list[ch],charge,True)
+
+    Interactive = False
+    Automatic = True
+    Zoom = False
+
+    rate, nevents, dfout = charge_map(list[run][ch],run_list[run],ch_list[ch],charge,Interactive, Automatic,Zoom)
 
     print("\n___RUN %i CH %i___"%(run_list[run],ch_list[ch]))
     print("\nSelected %i of %i events"%(dfout["evt"].size,list[run][ch]["evt"].size))
