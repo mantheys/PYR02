@@ -5,7 +5,7 @@ import ROOT
 
 from matplotlib.colors import LogNorm
 from matplotlib.backend_bases import MouseButton
-from matplotlib.patches import Rectangle
+#from matplotlib.patches import Rectangle
 
 def terminal_input():
     run_list = []; ch_list = []
@@ -45,12 +45,24 @@ def ntuple_to_pd(path,runs,channels):
     
     return mylist
 
-def charge_map(dfin,run,ch,charge,interactive,automatic,zoom):
+def charge_map(dfin,run,ch,charge,automatic=True,zoom=False):
 
     f90 = dfin[charge[0]]/dfin[charge[1]]
     np_f90 = f90.to_numpy()
     np_amp = dfin["Amp"].to_numpy()
     limits = [[0,0],[0,0]]
+
+    #CLEAN DATA
+    clean_f90 = []
+    clean_amp = []
+    for i in range (0,np.size(np_f90)):
+        if 0 < np_f90[i] < 1 and 0 < np_amp[i]:
+            clean_f90.append(np_f90[i])
+            clean_amp.append(np_amp[i])
+        else:
+            continue
+    np_f90 = np.array(clean_f90)
+    np_amp = np.array(clean_amp)
 
     #ZOOM TO DATA
     if zoom == True:
@@ -67,7 +79,7 @@ def charge_map(dfin,run,ch,charge,interactive,automatic,zoom):
     else:
         ymin, ymax, xmin, xmax = 0, 1, 0, np.max(np_amp)
 
-    counts, xedges, yedges = np.histogram2d(np_amp,np_f90, bins=(100, 100))
+    counts, xedges, yedges = np.histogram2d(np_amp,np_f90, bins=200)
     x_ind, y_ind = np.unravel_index(np.argmax(counts), counts.shape)
     xpeak = (xedges[x_ind]+xedges[x_ind+1])/2; ypeak = (yedges[y_ind]+yedges[y_ind+1])/2
     print(f'\nThe maximum count is {counts[x_ind][y_ind]:.0f} at index ({x_ind}, {y_ind})')
@@ -81,58 +93,9 @@ def charge_map(dfin,run,ch,charge,interactive,automatic,zoom):
     plt.colorbar(plthist[3])
     plt.scatter(xpeak, ypeak, s=50,color='crimson')
 
-    if interactive == True:
-        
-        while True:
-            plt.ion()
-            tellme("(RUN %i CH %i) Select 2 corners with your mouse"%(run,ch))
-            limits = plt.ginput(n=2, timeout=-1, show_clicks=True, mouse_add=MouseButton.LEFT)
-
-            if limits[0][0] < limits[1][0] and limits[0][1] < limits[1][1]:
-                amp_min, amp_max = limits[0][0], limits[1][0]
-                f90_min, f90_max = limits[0][1], limits[1][1]
-            
-            elif limits[0][0] > limits[1][0] and limits[0][1] < limits[1][1]:
-                amp_min, amp_max = limits[1][0], limits[0][0]
-                f90_min, f90_max = limits[0][1], limits[1][1]
-
-            elif limits[0][0] < limits[1][0] and limits[0][1] > limits[1][1]:
-                amp_min, amp_max = limits[0][0], limits[1][0]
-                f90_min, f90_max = limits[1][1], limits[0][1]
-
-            elif limits[0][0] > limits[1][0] and limits[0][1] > limits[1][1]:
-                amp_min, amp_max = limits[1][0], limits[0][0]       
-                f90_min, f90_max = limits[1][1], limits[0][1]
-            
-            else:
-                tellme("Same point selected twice! Click to continue")
-                plt.waitforbuttonpress()
-                continue
-            """
-            # DOES NOT SEEM TO WORK FOR SUCCESIVE ITERATIONS
-            rect = Rectangle((amp_min, f90_min), amp_max-amp_min, f90_max-f90_min,linewidth=1,edgecolor='crimson',facecolor='none')
-            fig1.add_patch(rect)
-            """
-            tellme('Happy? Key click for yes, mouse click for no')
-            plt.plot([amp_min,amp_max],[f90_min,f90_min],color="k")
-            plt.plot([amp_min,amp_max],[f90_max,f90_max],color="k")
-            plt.plot([amp_min,amp_min],[f90_min,f90_max],color="k")
-            plt.plot([amp_max,amp_max],[f90_min,f90_max],color="k")
-            
-            if plt.waitforbuttonpress(-1):
-                break
-
-            plt.clf()
-            
-            plthist = plt.hist2d(np_amp,np_f90,200,[[xmin,xmax],[ymin,ymax]],norm=LogNorm())    
-            plt.title("Charge map for rate calculation and particle ID (RUN %i CH %i)"%(run,ch)) 
-            plt.xlabel("Amp (ADC counts)", fontsize=12)
-            plt.ylabel(charge[0]+"/"+charge[1], fontsize=12)  
-            plt.colorbar(plthist[3])
-
-    elif automatic == True:
+    if automatic == True:
         plt.ion()
-        lim_counts = 1
+        lim_counts = counts[x_ind][y_ind]*0.01
         ycounts_max = counts[x_ind][y_ind]
         ycounts_min = counts[x_ind][y_ind]
         xcounts_max = counts[x_ind][y_ind]
@@ -170,15 +133,15 @@ def charge_map(dfin,run,ch,charge,interactive,automatic,zoom):
                 break
         f90_min = yedges[int(yind_min)]
         
-        tellme("Press any botton to continue")
+        tellme("Happy? Press any key to continue or click your own selection")
         plt.plot([amp_min,amp_max],[f90_min,f90_min],color="k")
         plt.plot([amp_min,amp_max],[f90_max,f90_max],color="k")
         plt.plot([amp_min,amp_min],[f90_min,f90_max],color="k")
         plt.plot([amp_max,amp_max],[f90_min,f90_max],color="k")
         
-        while True:
-            if plt.waitforbuttonpress(-1):
-                break
+        test = plt.waitforbuttonpress()
+        if test == False:
+            interactive = True
         """
         # ATTEMPT OF INCREMETAL AUTOMATIC
         counter = 0
@@ -194,6 +157,58 @@ def charge_map(dfin,run,ch,charge,interactive,automatic,zoom):
             if plt.waitforbuttonpress(-1):
                     break
         """
+        if interactive == True:
+            while True:
+                plt.clf()
+                plthist = plt.hist2d(np_amp,np_f90,200,[[xmin,xmax],[ymin,ymax]],norm=LogNorm())    
+                plt.xlabel("Amp (ADC counts)", fontsize=12)
+                plt.ylabel(charge[0]+"/"+charge[1], fontsize=12)  
+                plt.colorbar(plthist[3])
+                tellme("(RUN %i CH %i) Select 2 corners with your mouse"%(run,ch))
+                limits = plt.ginput(n=2, timeout=-1, show_clicks=True, mouse_add=MouseButton.LEFT)
+
+                if limits[0][0] < limits[1][0] and limits[0][1] < limits[1][1]:
+                    amp_min, amp_max = limits[0][0], limits[1][0]
+                    f90_min, f90_max = limits[0][1], limits[1][1]
+                
+                elif limits[0][0] > limits[1][0] and limits[0][1] < limits[1][1]:
+                    amp_min, amp_max = limits[1][0], limits[0][0]
+                    f90_min, f90_max = limits[0][1], limits[1][1]
+
+                elif limits[0][0] < limits[1][0] and limits[0][1] > limits[1][1]:
+                    amp_min, amp_max = limits[0][0], limits[1][0]
+                    f90_min, f90_max = limits[1][1], limits[0][1]
+
+                elif limits[0][0] > limits[1][0] and limits[0][1] > limits[1][1]:
+                    amp_min, amp_max = limits[1][0], limits[0][0]       
+                    f90_min, f90_max = limits[1][1], limits[0][1]
+                
+                else:
+                    tellme("Same point selected twice! Click to continue")
+                    plt.waitforbuttonpress()
+                    continue
+                """
+                # DOES NOT SEEM TO WORK FOR SUCCESIVE ITERATIONS
+                rect = Rectangle((amp_min, f90_min), amp_max-amp_min, f90_max-f90_min,linewidth=1,edgecolor='crimson',facecolor='none')
+                fig1.add_patch(rect)
+                """
+                tellme('Happy? Key click for yes, mouse click for no')
+                plt.plot([amp_min,amp_max],[f90_min,f90_min],color="k")
+                plt.plot([amp_min,amp_max],[f90_max,f90_max],color="k")
+                plt.plot([amp_min,amp_min],[f90_min,f90_max],color="k")
+                plt.plot([amp_max,amp_max],[f90_min,f90_max],color="k")
+                
+                if plt.waitforbuttonpress(-1):
+                    break
+
+                plt.clf()
+                
+                plthist = plt.hist2d(np_amp,np_f90,200,[[xmin,xmax],[ymin,ymax]],norm=LogNorm())    
+                plt.title("Charge map for rate calculation and particle ID (RUN %i CH %i)"%(run,ch)) 
+                plt.xlabel("Amp (ADC counts)", fontsize=12)
+                plt.ylabel(charge[0]+"/"+charge[1], fontsize=12)  
+                plt.colorbar(plthist[3])
+
     else:
         #___ASK IN TERMINAL FOR F90 RANGE TO COUNT EVENTS___
         print("\nINPUT RANGE FOR EVENT COUNTING\n")

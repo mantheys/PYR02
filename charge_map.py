@@ -14,7 +14,7 @@ fit = []
 rates = []
 
 #___PATH TO NTUPLE___
-path = "DATA/JAN_22/"
+path = "DATA/DIC_21/"
 #path = "/pc/choozdsk01/palomare/SiPM/SC_Fuente_Alpha_Dic/AnalysisROOT/"
 
 #___PARTIAL AND TOTAL CHARGE RANGES FOR EACH CHANNEL___
@@ -43,11 +43,10 @@ for run, ch in iter.product(range(0,np.size(run_list)),range(0,np.size(ch_list))
     
     charge = chargeconfig[ch_list[ch]]
 
-    Interactive = False
-    Automatic = True
-    Zoom = False
+    automatic = True
+    zoom = False
 
-    rate, nevents, dfout = charge_map(list[run][ch],run_list[run],ch_list[ch],charge,Interactive, Automatic,Zoom)
+    rate, nevents, dfout = charge_map(list[run][ch],run_list[run],ch_list[ch],charge,automatic,zoom)
 
     print("\n___RUN %i CH %i___"%(run_list[run],ch_list[ch]))
     print("\nSelected %i of %i events"%(dfout["evt"].size,list[run][ch]["evt"].size))
