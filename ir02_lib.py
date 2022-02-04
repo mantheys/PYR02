@@ -132,7 +132,7 @@ def charge_map(dfin,run,ch,charge,interactive,automatic,zoom):
 
     elif automatic == True:
         plt.ion()
-        lim_counts = 0
+        lim_counts = 1
         ycounts_max = counts[x_ind][y_ind]
         ycounts_min = counts[x_ind][y_ind]
         xcounts_max = counts[x_ind][y_ind]
