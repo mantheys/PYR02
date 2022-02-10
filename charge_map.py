@@ -3,7 +3,9 @@ import numpy as np
 import itertools as iter
 import matplotlib.pyplot as plt
 
-from ir02_lib import ntuple_to_pd, charge_map, q_vs_amp, lin_fit, terminal_input
+from ir02_lib.ntuple_to_pd import ntuple_to_pd
+from ir02_lib.terminal_input import terminal_input
+from ir02_lib.charge_map import charge_map
 
 ####################################################################################################################################
 # PROGRAMM STARTS WITH INITIALISED VARIABLES AND CONFIGURATION (IN FUTURE VERSIONS MIGHT BE INCLUDED WITH AN EXTERNAL CONFIG FILE) #
@@ -14,7 +16,7 @@ fit = []
 rates = []
 
 #___PATH TO NTUPLE___
-path = "DATA/DIC_21/"
+path = "../DATA/JAN_22/AnalysisROOT/"
 #path = "/pc/choozdsk01/palomare/SiPM/SC_Fuente_Alpha_Dic/AnalysisROOT/"
 
 #___PARTIAL AND TOTAL CHARGE RANGES FOR EACH CHANNEL___
@@ -38,26 +40,27 @@ list = ntuple_to_pd(path,run_list,ch_list)
 # MAIN ANALYSIS AND COMPUTATIONS                                                                                                   #
 ####################################################################################################################################
 
+automatic = input("Use automatic selection? (yes / no): ")
+
 #___EXECUTE THE FUNCTIONS THAT YOU WANT ITERATING OVER RUN NUMBER AND CHANNEL___
 for run, ch in iter.product(range(0,np.size(run_list)),range(0,np.size(ch_list))):
     
     charge = chargeconfig[ch_list[ch]]
-
-    automatic = True
     zoom = False
 
     rate, nevents, dfout = charge_map(list[run][ch],run_list[run],ch_list[ch],charge,automatic,zoom)
+    #charge_map(list[run][ch],run_list[run],ch_list[ch],charge,automatic,zoom)
 
+    """
     print("\n___RUN %i CH %i___"%(run_list[run],ch_list[ch]))
     print("\nSelected %i of %i events"%(dfout["evt"].size,list[run][ch]["evt"].size))
     print("Evaluated rate = %f Hz\n"%rate)
     rates.append(rate)
-
-plt.ioff()
-
+    """
 ######################################################################################################################################
 # COMBINED RESULTS AND GRPAHICAL OUTPUTS
 ######################################################################################################################################
-
+"""
 print("Mean rate = %.2f\n"%np.mean(rates))
 print("STD rate = %.2f\n"%np.std(rates))
+"""

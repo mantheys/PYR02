@@ -1,4 +1,4 @@
-from ir02_lib import deconvolution_noise, my_wvf
+from ir02_lib.lib import deconvolution_noise, my_wvf
 
 path = '../DATA/JAN_22/AnalysisROOT/'
 
