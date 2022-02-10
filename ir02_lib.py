@@ -5,6 +5,7 @@ import ROOT
 import scipy.fft
 
 from scipy.optimize import curve_fit
+from scipy.signal import convolve
 
 from matplotlib.colors import LogNorm
 from matplotlib.backend_bases import MouseButton
@@ -372,11 +373,11 @@ def func(x, a, c):
     return a*np.exp(-x/c)
 
 def deconvolution_noise(path, alpha_name, laser_name, noise_name, deconv_time = 2400, initial_time = 450, end_time = 1000, smooth = 0.6):
-    base_dir = path
+    base_dir = path; dic = {alpha_name, laser_name, noise_name}
     #Load SiPM name
-    inSiPMName = base_dir+alpha_name
-    inSiPM = ROOT.TFile.Open(inSiPMName ,"READ")
-    listkeys_SiPM = inSiPM.GetListOfKeys()
+    inAlphaName = base_dir+alpha_name
+    inAlpha = ROOT.TFile.Open(inAlphaName ,"READ")
+    listkeys_Alpha = inAlpha.GetListOfKeys()
     #Load laser name
     inLaserName = base_dir+laser_name
     inLaser = ROOT.TFile.Open(inLaserName ,"READ")
@@ -386,59 +387,71 @@ def deconvolution_noise(path, alpha_name, laser_name, noise_name, deconv_time = 
     inNoise = ROOT.TFile.Open(inNoiseName ,"READ")
     listkeys_Noise = inNoise.GetListOfKeys()
     
-    sipm = my_wvf("vector",inSiPMName,listkeys_SiPM[0].GetName())
+    alpha = my_wvf("vector",inAlphaName,listkeys_Alpha[0].GetName())
     laser = my_wvf("vector",inLaserName,listkeys_Laser[0].GetName())
     noise = my_wvf("vector",inNoiseName,listkeys_Noise[0].GetName())
     
     plt.plot(laser.wvf/max(laser.wvf))
-    plt.plot(sipm.wvf/max(sipm.wvf))
+    plt.plot(alpha.wvf/max(alpha.wvf))
     plt.legend(["Laser Raw", "Signal Raw"]); plt.xlabel("Bin number (1bin = 4ns)")
     plt.show()
 
     laser.apply_smooth(smooth)
-    sipm.apply_smooth(smooth)
+    alpha.apply_smooth(smooth)
     plt.plot(laser.wvf/max(laser.wvf))
-    plt.plot(sipm.wvf/max(sipm.wvf))
+    plt.plot(alpha.wvf/max(alpha.wvf))
     #plt.semilogy()
     plt.legend(["Laser Smooth", "Signal Smooth"]); plt.xlabel("Bin number (1bin = 4ns)")
     plt.show()
 
-    shift_sipm = np.roll(np.array(sipm.wvf),np.argmax(laser.wvf)-np.argmax(sipm.wvf))
+    shift_sipm = np.roll(np.array(alpha.wvf),np.argmax(laser.wvf)-np.argmax(alpha.wvf))
     plt.plot(laser.wvf/max(laser.wvf))
     plt.plot(shift_sipm/max(shift_sipm))
     #plt.semilogy()
     plt.legend(["Laser Smooth", "Signal Smooth"]); plt.xlabel("Bin number (1bin = 4ns)")
     plt.show()
+    
+    tau_slow = 1
+    x = np.linspace(0, 5000, 5002)
+    y = np.exp(-x/tau_slow)
+    shift_exp = np.roll(y,np.argmax(laser.wvf)-np.argmax(y))
+    conv = scipy.signal.fftconvolve(np.array(laser.wvf), shift_exp, "same")
+    plt.plot(laser.wvf/max(laser.wvf))
+    plt.plot(x,shift_exp)
+    plt.plot(x, conv)
+    plt.show()
 
     # Calculate Wiener filter
-    wiener = abs(sipm.wvf_F)**2/(abs(sipm.wvf_F)**2+abs(noise.wvf_F)**2)
+    wiener = abs(alpha.wvf_F)**2/(abs(alpha.wvf_F)**2+abs(noise.wvf_F)**2)
     wiener_laser = abs(laser.wvf_F)**2/(abs(laser.wvf_F)**2+abs(noise.wvf_F)**2)
     # Calculate deconvolved
-    deconvolved = sipm.wvf_F/laser.wvf_F
+    deconvolved = alpha.wvf_F/laser.wvf_F
     #deconvolved = sipm.wvf_F/laser.wvf_F*wiener
     #deconvolved = sipm.wvf_F/laser.wvf_F*wiener*wiener_laser
     
     # Plot freqs
-    fig=plt.figure(figsize=(6,4), dpi= 150, facecolor='w', edgecolor='k')
+    #fig=plt.figure(figsize=(6,4), dpi= 150, facecolor='w', edgecolor='k')
     #plt.plot(sipm.wvf_F_x,abs(wiener),label = "Wiener", lw = 1)
     #plt.plot(sipm.wvf_F_x,abs(wiener_laser),label = "Wiener Laser", lw = 1)
-    plt.plot(sipm.wvf_F_x,abs(deconvolved), label = "Deconvolution", lw = 1)
-    plt.plot(sipm.wvf_F_x,abs(sipm.wvf_F), label = "Signal", lw = 1)
-    plt.plot(sipm.wvf_F_x,abs(laser.wvf_F), label = "Laser", lw = 1)
+    plt.plot(alpha.wvf_F_x,abs(deconvolved), label = "Deconvolution", lw = 1)
+    plt.plot(alpha.wvf_F_x,abs(alpha.wvf_F), label = "Signal", lw = 1)
+    plt.plot(alpha.wvf_F_x,abs(laser.wvf_F), label = "Laser", lw = 1)
     plt.grid(which="both"); plt.semilogy(); plt.semilogx();
     plt.legend()
     plt.xlabel("Freq (Hz)")
     plt.show()
     
-    # Probably tail is problematic
-    print("Check deconvolved time!!")
     deconvolved_short=deconvolved[:deconv_time]
     deconvolved_time=scipy.fft.irfft(deconvolved_short)
+    """
+    # Probably tail is problematic
+    print("Check deconvolved time!!")
     fig=plt.figure(figsize=(6,4), dpi= 90, facecolor='w', edgecolor='k')
     plt.plot(abs(deconvolved))
     plt.plot(abs(deconvolved_short))
     plt.semilogy(); plt.show()
-    
+    """
+
     deco1=my_wvf("python",item=deconvolved_time)
     deco1_maxindex = np.where(deco1.wvf==max(deco1.wvf))[0][0]  # Bin where deconvolved signal reaches max
     deco1_13us = np.where(deco1.wvf_x>1.3e-6)[0][0]             # Bin where 1.3 us
