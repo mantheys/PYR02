@@ -26,7 +26,7 @@ class my_wvf:
             self.wvf=self.wvf/max(self.wvf)
         self.timebin=timebin
         N=len(self.wvf)
-        self.wvf_x = x_time=np.linspace(0,N*timebin,N)
+        self.wvf_x = x_time = np.linspace(0,N*timebin,N)
         self.doFFT()
         
     def apply_smooth(self,alfa):
@@ -371,13 +371,13 @@ def plot_F(mps):
 def func(x, a, c):
     return a*np.exp(-x/c)
 
-def deconvolution_noise(sipm_name, laser_name, noise_name, deconv_time = 2400, initial_time = 450, end_time = 1000, ch_sipm = 0, day = ""):
-    base_dir = 'DATA/DIC_21/AnalysisROOT/'
-#     Load SiPM name
-    inSiPMName = base_dir+sipm_name
+def deconvolution_noise(path, alpha_name, laser_name, noise_name, deconv_time = 2400, initial_time = 450, end_time = 1000, smooth = 0.6):
+    base_dir = path
+    #Load SiPM name
+    inSiPMName = base_dir+alpha_name
     inSiPM = ROOT.TFile.Open(inSiPMName ,"READ")
     listkeys_SiPM = inSiPM.GetListOfKeys()
-#     Load laser name
+    #Load laser name
     inLaserName = base_dir+laser_name
     inLaser = ROOT.TFile.Open(inLaserName ,"READ")
     listkeys_Laser = inLaser.GetListOfKeys()
@@ -386,43 +386,47 @@ def deconvolution_noise(sipm_name, laser_name, noise_name, deconv_time = 2400, i
     inNoise = ROOT.TFile.Open(inNoiseName ,"READ")
     listkeys_Noise = inNoise.GetListOfKeys()
     
-    # Dump histograms
-    if ch_sipm == 0:
-        sipm = my_wvf("vector",inSiPMName,listkeys_SiPM[0].GetName())
-        laser = my_wvf("vector",inLaserName,listkeys_Laser[0].GetName())
-        noise = my_wvf("vector",inNoiseName,listkeys_Noise[0].GetName())
-    else:
-        sipm = my_wvf("vector",inSiPMName,listkeys_SiPM[1].GetName())
-        laser = my_wvf("vector",inLaserName,listkeys_Laser[1].GetName())
-        noise = my_wvf("vector",inNoiseName,listkeys_Noise[1].GetName())
+    sipm = my_wvf("vector",inSiPMName,listkeys_SiPM[0].GetName())
+    laser = my_wvf("vector",inLaserName,listkeys_Laser[0].GetName())
+    noise = my_wvf("vector",inNoiseName,listkeys_Noise[0].GetName())
     
-    # Plot signals and apply smooth
-    fig=plt.figure(figsize=(6,4), dpi= 150, facecolor='w', edgecolor='k')
-    smooth=0.6;
-    plt.plot(laser.wvf/max(laser.wvf))
-    laser.apply_smooth(smooth)
     plt.plot(laser.wvf/max(laser.wvf))
     plt.plot(sipm.wvf/max(sipm.wvf))
-    sipm.apply_smooth(smooth)
-    plt.plot(sipm.wvf/max(sipm.wvf))
-    plt.semilogy()
-    plt.legend(["Laser Raw","Laser Raw+Smooth", "SiPM Raw", "SiPM Raw+Smooth"]); plt.xlabel("Bin number (1bin = 4ns)")
+    plt.legend(["Laser Raw", "Signal Raw"]); plt.xlabel("Bin number (1bin = 4ns)")
     plt.show()
-    
+
+    laser.apply_smooth(smooth)
+    sipm.apply_smooth(smooth)
+    plt.plot(laser.wvf/max(laser.wvf))
+    plt.plot(sipm.wvf/max(sipm.wvf))
+    #plt.semilogy()
+    plt.legend(["Laser Smooth", "Signal Smooth"]); plt.xlabel("Bin number (1bin = 4ns)")
+    plt.show()
+
+    shift_sipm = np.roll(np.array(sipm.wvf),np.argmax(laser.wvf)-np.argmax(sipm.wvf))
+    plt.plot(laser.wvf/max(laser.wvf))
+    plt.plot(shift_sipm/max(shift_sipm))
+    #plt.semilogy()
+    plt.legend(["Laser Smooth", "Signal Smooth"]); plt.xlabel("Bin number (1bin = 4ns)")
+    plt.show()
+
     # Calculate Wiener filter
     wiener = abs(sipm.wvf_F)**2/(abs(sipm.wvf_F)**2+abs(noise.wvf_F)**2)
     wiener_laser = abs(laser.wvf_F)**2/(abs(laser.wvf_F)**2+abs(noise.wvf_F)**2)
     # Calculate deconvolved
-    deconvolved = sipm.wvf_F/laser.wvf_F*wiener
-#     deconvolved = sipm.wvf_F/laser.wvf_F*wiener*wiener_laser
+    deconvolved = sipm.wvf_F/laser.wvf_F
+    #deconvolved = sipm.wvf_F/laser.wvf_F*wiener
+    #deconvolved = sipm.wvf_F/laser.wvf_F*wiener*wiener_laser
     
     # Plot freqs
     fig=plt.figure(figsize=(6,4), dpi= 150, facecolor='w', edgecolor='k')
-    plt.plot(sipm.wvf_F_x,abs(deconvolved))
-    plt.plot(sipm.wvf_F_x,abs(sipm.wvf_F))
-    plt.plot(sipm.wvf_F_x,abs(laser.wvf_F))
+    #plt.plot(sipm.wvf_F_x,abs(wiener),label = "Wiener", lw = 1)
+    #plt.plot(sipm.wvf_F_x,abs(wiener_laser),label = "Wiener Laser", lw = 1)
+    plt.plot(sipm.wvf_F_x,abs(deconvolved), label = "Deconvolution", lw = 1)
+    plt.plot(sipm.wvf_F_x,abs(sipm.wvf_F), label = "Signal", lw = 1)
+    plt.plot(sipm.wvf_F_x,abs(laser.wvf_F), label = "Laser", lw = 1)
     plt.grid(which="both"); plt.semilogy(); plt.semilogx();
-    plt.legend(["Deconvolved", "SiPM", "Laser"])
+    plt.legend()
     plt.xlabel("Freq (Hz)")
     plt.show()
     
@@ -436,22 +440,23 @@ def deconvolution_noise(sipm_name, laser_name, noise_name, deconv_time = 2400, i
     plt.semilogy(); plt.show()
     
     deco1=my_wvf("python",item=deconvolved_time)
-    deco1_maxindex = np.where(deco1.wvf==max(deco1.wvf))[0][0] # Bin where deconvolved signal reaches max
-    deco1_13us = np.where(deco1.wvf_x>1.3e-6)[0][0] # Bin where 1.3 us
-    index_diff = deco1_maxindex-deco1_13us # Bin difference in order to place max in 1.3us
-    ls = [] # Empty list for tau values
+    deco1_maxindex = np.where(deco1.wvf==max(deco1.wvf))[0][0]  # Bin where deconvolved signal reaches max
+    deco1_13us = np.where(deco1.wvf_x>1.3e-6)[0][0]             # Bin where 1.3 us
+    index_diff = deco1_maxindex-deco1_13us                      # Bin difference in order to place max in 1.3us
+    ls = []                                                     # Empty list for tau values
     
     deco1_mod = np.concatenate((deco1.wvf[index_diff:],deco1.wvf[:index_diff]), axis = None)
-    fig=plt.figure(figsize=(6,4), dpi= 150, facecolor='w', edgecolor='k')
     plt.plot(deco1.wvf_x,deco1_mod)
-    popt, pcov = curve_fit(func, deco1.wvf_x[initial_time:end_time],deco1_mod[initial_time:end_time], p0=(1, 1e-6)) # Fit between 1.8 and 4 us
+    
+    popt, pcov = curve_fit(func, deco1.wvf_x[initial_time:end_time],deco1_mod[initial_time:end_time], p0=(0, 4e-6)) # Fit between 1.8 and 4 us
     y_before = func(deco1.wvf_x[initial_time:end_time], *popt)
     print("T_slow (pre-smooth) =",popt[1])
     ls.append(popt[1]*1e6)
     
     deco1.apply_smooth(0.6)
     deco1_mod = np.concatenate((deco1.wvf[index_diff:],deco1.wvf[:index_diff]), axis = None)
-    popt, pcov = curve_fit(func, deco1.wvf_x[initial_time:end_time],deco1_mod[initial_time:end_time], p0=(1, 1e-6))
+    
+    popt, pcov = curve_fit(func, deco1.wvf_x[initial_time:end_time],deco1_mod[initial_time:end_time], p0=(0, 4e-6))
     y_after = func(deco1.wvf_x[initial_time:end_time], *popt)
     print("T_slow (post-smooth) =",popt[1])
     ls.append(popt[1]*1e6)
@@ -461,7 +466,7 @@ def deconvolution_noise(sipm_name, laser_name, noise_name, deconv_time = 2400, i
     plt.plot(deco1.wvf_x[initial_time:end_time],y_after)
     plt.xlim([0,5e-6])
     plt.xlabel("Time (s)"); 
-    plt.title("Scintillation Profile "+"("+day+")")
+    plt.title("Scintillation Profile")
     plt.legend(["Pre-Smooth", "Post-Smooth",r'$\tau_{slow} =$'+str(round(ls[0],2)), r'$\tau_{slow} = $'+str(round(ls[1],2))])
-    plt.semilogy()
+    #plt.semilogy()
     plt.show()
