@@ -24,18 +24,15 @@ def plot_multi(df1,colors,ch,var,axes=None,nbins=100,leyenda=[],log=False):
     if log==True:
         plt.yscale('log')
 
-"""
+
 #___ASK FOR PLOT TO BE DISPLAYED___
 q1 = input("\nShow plot? (y/n): ")
 if q1 == "y" or q1 =="yes" or q1 == "Y":
     plt.show()   
-"""
 
-"""
 run_list = []
 run = 1
 while run != 0:
     run = int(input("Input run number (0 to stop): "))
     if run != 0:
         run_list.append(run)
-"""
