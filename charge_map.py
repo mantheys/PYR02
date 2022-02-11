@@ -3,9 +3,10 @@ import numpy as np
 import itertools as iter
 import matplotlib.pyplot as plt
 
-from ir02_lib.ntuple_to_pd import ntuple_to_pd
-from ir02_lib.terminal_input import terminal_input
-from ir02_lib.charge_map import charge_map
+from ir02_lib.lib_ntuple_to_pd import ntuple_to_pd
+from ir02_lib.lib_terminal_input import terminal_input
+from ir02_lib.lib_charge_map import charge_map
+from ir02_lib.lib_q_vs_amp import q_vs_amp
 
 ####################################################################################################################################
 # PROGRAMM STARTS WITH INITIALISED VARIABLES AND CONFIGURATION (IN FUTURE VERSIONS MIGHT BE INCLUDED WITH AN EXTERNAL CONFIG FILE) #
@@ -50,17 +51,16 @@ for run, ch in iter.product(range(0,np.size(run_list)),range(0,np.size(ch_list))
 
     rate, nevents, dfout = charge_map(list[run][ch],run_list[run],ch_list[ch],charge,automatic,zoom)
     #charge_map(list[run][ch],run_list[run],ch_list[ch],charge,automatic,zoom)
+    q_vs_amp(dfout,run_list[run],ch_list[ch],charge[0])
 
-    """
     print("\n___RUN %i CH %i___"%(run_list[run],ch_list[ch]))
     print("\nSelected %i of %i events"%(dfout["evt"].size,list[run][ch]["evt"].size))
     print("Evaluated rate = %f Hz\n"%rate)
     rates.append(rate)
-    """
-######################################################################################################################################
-# COMBINED RESULTS AND GRPAHICAL OUTPUTS
-######################################################################################################################################
-"""
+    
+####################################################################################################################################
+# COMBINED RESULTS AND GRPAHICAL OUTPUTS                                                                                           #
+####################################################################################################################################
+
 print("Mean rate = %.2f\n"%np.mean(rates))
 print("STD rate = %.2f\n"%np.std(rates))
-"""

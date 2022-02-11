@@ -62,21 +62,6 @@ class my_wvf:
         self.wvf_deco_F=self.wvf_F/denominator
         self.wvf_deco=scipy.fft.irfft(self.wvf_deco_F)
 
-def lin_fit(dfin,run,ch,charge):
-
-    y_scatt = dfin[charge].to_numpy()
-    x_scatt = dfin["Amp"].to_numpy()
-
-    #plt.scatter(x_scatt,y_scatt)
-
-    linear_model = np.polyfit(x_scatt,y_scatt,1)
-    linear_model_fn = np.poly1d(linear_model)
-
-    x = np.linspace(np.min(x_scatt),np.max(x_scatt))
-    plt.plot(x,linear_model_fn(x),label = "Linear fit run %i and ch %i"%(run,ch))
-    
-    return linear_model_fn
-
 def tfile_hist2array(tfile,hist_path):
     file=TFile( tfile, 'READ' )
     h=file.Get(hist_path)
