@@ -18,7 +18,7 @@ fit = []
 rates = []
 
 #___PATH TO NTUPLE___
-path = "../DATA/JAN_22/AnalysisROOT/"
+path = "../DATA/FEB_22/AnalysisROOT/"
 #path = "/pc/choozdsk01/palomare/SiPM/SC_Fuente_Alpha_Dic/AnalysisROOT/"
 
 #___PARTIAL AND TOTAL CHARGE RANGES FOR EACH CHANNEL___

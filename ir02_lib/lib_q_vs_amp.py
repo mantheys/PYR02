@@ -41,4 +41,4 @@ def q_vs_amp(dfin,run,ch,charge):
             test = plt.waitforbuttonpress(-1)
 
     plt.clf()
-    plt.close("all") 
+    #plt.close("all") 

@@ -185,7 +185,7 @@ def charge_map(dfin,run,ch,charge,automatic="yes",zoom=False):
                 print("WRONG INPUT!")
 
     plt.clf()
-    plt.close("all")  
+    #plt.close("all")  
 
     #___COUNT F90 VALUES INSIDE GIVEN RANGE___
     dfout = dfin.loc[(dfin["Amp"] < amp_max) & (dfin["Amp"] > amp_min) & (f90 < f90_max) & (f90 > f90_min)]
