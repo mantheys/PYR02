@@ -1,3 +1,10 @@
+import numpy as np
+import ROOT
+import scipy
+import matplotlib.pyplot as plt
+
+from scipy.optimize import curve_fit
+from scipy import fft, signal
 from ROOT import TF2, TH1D, TF1, TFile
 
 class my_wvf:
@@ -123,7 +130,10 @@ def deconvolution_noise(path, alpha_name, laser_name, noise_name, deconv_time = 
     
     plt.plot(laser.wvf/max(laser.wvf))
     plt.plot(alpha.wvf/max(alpha.wvf))
-    plt.legend(["Laser Raw", "Signal Raw"]); plt.xlabel("Bin number (1bin = 4ns)")
+    plt.legend(["Laser Raw", "Signal Raw"])
+    plt.title("Laser vs. Alpha Average Waveforms")
+    plt.xlabel("Bin number [1bin = 4ns]")
+    plt.ylabel("Normalized Amplitude")
     plt.show()
 
     laser.apply_smooth(smooth)
@@ -138,12 +148,14 @@ def deconvolution_noise(path, alpha_name, laser_name, noise_name, deconv_time = 
     plt.plot(laser.wvf/max(laser.wvf))
     plt.plot(shift_sipm/max(shift_sipm))
     #plt.semilogy()
-    plt.legend(["Laser Smooth", "Signal Smooth"]); plt.xlabel("Bin number (1bin = 4ns)")
+    plt.title("Laser vs. Alpha Average Waveforms (Aligned)")
+    plt.legend(["Laser Smooth", "Signal Smooth"]); plt.xlabel("Bin number [1bin = 4ns]")
+    plt.ylabel("Normalized Amplitude")
     plt.show()
     
-    tau_slow = 1e2
+    tau_slow = 1e6
     x = np.linspace(0, 5000, 5002)
-    y = np.exp(-x/tau_slow)
+    y = np.exp(-x/tau_slow)*1e-2
     shift_exp = np.roll(y,np.argmax(laser.wvf)-np.argmax(y))
     conv = scipy.signal.fftconvolve(np.array(laser.wvf/max(laser.wvf)), shift_exp, "same")
     plt.plot(laser.wvf/max(laser.wvf))
@@ -194,7 +206,7 @@ def deconvolution_noise(path, alpha_name, laser_name, noise_name, deconv_time = 
     popt, pcov = curve_fit(func, deco1.wvf_x[initial_time:end_time],deco1_mod[initial_time:end_time], p0=(0, 4e-6)) # Fit between 1.8 and 4 us
     y_before = func(deco1.wvf_x[initial_time:end_time], *popt)
     print("T_slow (pre-smooth) =",popt[1])
-    ls.append(popt[1]*1e6)
+    ls.append(popt[1])
     
     deco1.apply_smooth(0.6)
     deco1_mod = np.concatenate((deco1.wvf[index_diff:],deco1.wvf[:index_diff]), axis = None)
@@ -202,14 +214,14 @@ def deconvolution_noise(path, alpha_name, laser_name, noise_name, deconv_time = 
     popt, pcov = curve_fit(func, deco1.wvf_x[initial_time:end_time],deco1_mod[initial_time:end_time], p0=(0, 4e-6))
     y_after = func(deco1.wvf_x[initial_time:end_time], *popt)
     print("T_slow (post-smooth) =",popt[1])
-    ls.append(popt[1]*1e6)
+    ls.append(popt[1])
     
     plt.plot(deco1.wvf_x,deco1_mod)
     plt.plot(deco1.wvf_x[initial_time:end_time],y_before)
     plt.plot(deco1.wvf_x[initial_time:end_time],y_after)
     plt.xlim([0,5e-6])
-    plt.xlabel("Time (s)"); 
+    plt.xlabel("Time [s]");plt.ylabel("Amplitude [a.u.]");
     plt.title("Scintillation Profile")
-    plt.legend(["Pre-Smooth", "Post-Smooth",r'$\tau_{slow} =$'+str(round(ls[0],2)), r'$\tau_{slow} = $'+str(round(ls[1],2))])
+    plt.legend(["Pre-Smooth", "Post-Smooth",r'$\tau_{slow} = $'+str(round(ls[0],4)), r'$\tau_{slow} = $'+str(round(ls[1],4))])
     #plt.semilogy()
     plt.show()
