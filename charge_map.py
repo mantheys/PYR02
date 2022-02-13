@@ -1,4 +1,5 @@
 #___IMPORT MODULES___
+from tkinter import Y
 import numpy as np
 import itertools as iter
 import matplotlib.pyplot as plt
@@ -23,6 +24,7 @@ path = "../DATA/JAN_22/AnalysisROOT/"
 #___PARTIAL AND TOTAL CHARGE RANGES FOR EACH CHANNEL___
 #chargeconfig = [          [] #SiPM 1                    [] #SiPM 2                     [] PMT                  [] SC            ]
 chargeconfig = [["QPeakRange2", "QFixRange4"],["QPeakRange2", "QFixRange4"],["QPeakRange1", "QFixRange4"],["QPeakRange1", "QPeak"]]
+#chargeconfig = [["QPeakRange1", "QFixRange2"],["QPeakRange1", "QFixRange2"],["QPeakRange1", "QFixRange4"],["QPeakRange4", "QPeak"]]
 
 ####################################################################################################################################
 # PROGRAMM WELCOMES THE USER AND ASKS FOR RUN AND CH NUMBERS TO CREATE THE DATA FRAME FROM NTUPLES                                 #

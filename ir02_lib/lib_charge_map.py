@@ -3,10 +3,7 @@ import matplotlib.pyplot as plt
 
 from matplotlib.colors import LogNorm
 from matplotlib.backend_bases import MouseButton
-
-def tellme(title):
-    plt.title(title, fontsize=12)
-    plt.draw()
+from ir02_lib.lib_tellme import tellme
     
 def charge_map(dfin,run,ch,charge,automatic="yes",zoom=False):
     
@@ -67,7 +64,8 @@ def charge_map(dfin,run,ch,charge,automatic="yes",zoom=False):
         plt.ylabel(charge[0]+"/"+charge[1], fontsize=12)
 
         if auto == True:
-            lim_counts = counts[x_ind][y_ind]*0.01
+            lim_counts = counts[x_ind][y_ind]*5e-4
+
             ycounts_max = counts[x_ind][y_ind]
             ycounts_min = counts[x_ind][y_ind]
             xcounts_max = counts[x_ind][y_ind]
@@ -87,7 +85,7 @@ def charge_map(dfin,run,ch,charge,automatic="yes",zoom=False):
                     amp_max = xedges[xind_max]
                 else:
                     break
-            amp_max = xedges[xind_max]
+            amp_max = xedges[int(xind_max)]
 
             for yind_max in range(y_ind, np.size(counts[x_ind][:])):
                 if ycounts_max > lim_counts:
@@ -95,7 +93,7 @@ def charge_map(dfin,run,ch,charge,automatic="yes",zoom=False):
                     f90_max = yedges[yind_max]
                 else:
                     break
-            f90_max = yedges[yind_max]
+            f90_max = yedges[int(yind_max)]
 
             for yind_min in np.linspace(y_ind,0):
                 if ycounts_min > lim_counts:
@@ -105,7 +103,7 @@ def charge_map(dfin,run,ch,charge,automatic="yes",zoom=False):
                     break
             f90_min = yedges[int(yind_min)]
             
-            tellme("Happy? Press any key to continue or click your own selection")
+            tellme("Happy? Press any key to continue\nor select events yourself")
             plt.plot([amp_min,amp_max],[f90_min,f90_min],color="k")
             plt.plot([amp_min,amp_max],[f90_max,f90_max],color="k")
             plt.plot([amp_min,amp_min],[f90_min,f90_max],color="k")
