@@ -5,7 +5,7 @@ from matplotlib.colors import LogNorm
 from matplotlib.backend_bases import MouseButton
 from ir02_lib.lib_tellme import tellme
     
-def charge_map(dfin,run,ch,charge,automatic="yes",zoom=False):
+def charge_map(dfin,run,ch,month,charge,automatic="yes",zoom=False):
     
     yes_string = ["yes", "y", "YES", "Y", "Yes"]
     no_string = ["no", "n", "NO", "N", "No"]
@@ -58,11 +58,14 @@ def charge_map(dfin,run,ch,charge,automatic="yes",zoom=False):
     
     plt.ioff
     with plt.ion():
+        
         plthist = plt.hist2d(np_amp,np_f90,200,[[xmin,xmax],[ymin,ymax]], norm = LogNorm()); plt.colorbar(plthist[3])
+        plt.title(month+"_RUN%i_CH%i"%(run,ch))
         plt.scatter(xpeak, ypeak, s=50,color='crimson')
+        plt.axhline(ypeak, linestyle = '--',color='crimson', label= "Maximum value found at %.2f"%ypeak)
         plt.xlabel("Amp (ADC counts)", fontsize=12)
         plt.ylabel(charge[0]+"/"+charge[1], fontsize=12)
-
+        plt.legend()
         if auto == True:
             lim_counts = counts[x_ind][y_ind]*5e-4
 
@@ -166,7 +169,7 @@ def charge_map(dfin,run,ch,charge,automatic="yes",zoom=False):
         else:
             #___ASK IN TERMINAL FOR F90 RANGE TO COUNT EVENTS___
             print("\nINPUT RANGE FOR EVENT COUNTING\n")
-            plt.axhline(.7)
+            #plt.axhline(.7)
             default = input("Use default cut (0.7)? (yes / no): ")
             
             if default in yes_string:

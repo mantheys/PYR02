@@ -2,8 +2,10 @@ import numpy as np
 
 def terminal_input():
     run_list = []; ch_list = []
-    run_list_string = input("Input run list (use space between numbers): ")
-    ch_list_string = input("Input channel list (use space between numbers): ")
+    run_list_string = input("Enter run list (use space between numbers): ")
+    ch_list_string = input("Enter channel list (use space between numbers): ")
+    month = input("Enter month label: ")
+
     run_list_split = run_list_string.split(" ")
     ch_list_split = ch_list_string.split(" ")
 
@@ -13,4 +15,4 @@ def terminal_input():
     for i in range(np.size(ch_list_split)):
         ch_list.append(int(ch_list_split[i]))
     
-    return run_list, ch_list
+    return run_list, ch_list, month

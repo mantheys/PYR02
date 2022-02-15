@@ -14,7 +14,7 @@ def lin_fit(dfin,run,ch,charge,n):
     
     return linear_model_fn
 
-def q_vs_amp(dfin,run,ch,charge):
+def q_vs_amp(dfin,run,ch,month,charge):
     
     np_q = dfin[charge].to_numpy()
     np_amp = dfin["Amp"].to_numpy()
@@ -22,6 +22,7 @@ def q_vs_amp(dfin,run,ch,charge):
     plt.ioff
     test = False
     plthist = plt.hist2d(np_amp,np_q,200,[[np.min(np_amp),np.max(np_amp)],[np.min(np_q),np.max(np_q)]], norm = LogNorm(), label = "Linear fit run %i and ch %i"%(run,ch))
+    plt.title(month+"_RUN%i_CH%i"%(run,ch))
     plt.colorbar(plthist[3])
     plt.xlabel("Amp (ADC counts)", fontsize=12)
     plt.ylabel("Total Charge (%s) in pC"%charge, fontsize=12)
