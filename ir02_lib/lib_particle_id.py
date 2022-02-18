@@ -5,7 +5,7 @@ from matplotlib.colors import LogNorm
 from matplotlib.backend_bases import MouseButton
 from ir02_lib.lib_tellme import tellme
     
-def charge_map(dfin,run,ch,month,charge,automatic="yes",zoom=False):
+def particle_id(dfin,run,ch,month,charge,automatic="yes",zoom=False):
     
     yes_string = ["yes", "y", "YES", "Y", "Yes"]
     no_string = ["no", "n", "NO", "N", "No"]
