@@ -18,13 +18,15 @@ fit = []
 rates = []
 
 #___PATH TO NTUPLE___
-path = "/Users/sergio/DATA/DIC_21/AnalysisROOT/"
+path = "/Users/sergio/DATA/JAN_22/AnalysisROOT/"
 #path = "/pc/choozdsk01/palomare/SiPM/SC_Fuente_Alpha_Dic/AnalysisROOT/"
 
 #___PARTIAL AND TOTAL CHARGE RANGES FOR EACH CHANNEL___
 #chargeconfig = [          [] #SiPM 1                    [] #SiPM 2                     [] PMT                  [] SC            ]
-#chargeconfig = [["QPeakRange2", "QFixRange4"],["QPeakRange2", "QFixRange4"],["QPeakRange1", "QFixRange4"],["QPeakRange1", "QPeak"]]
-chargeconfig = [["QPeakRange1", "QFixRange2"],["QPeakRange1", "QFixRange2"],["QPeakRange1", "QPeak"],["QPeakRange1", "QFixRange3"]]
+chargeconfig = [["QPeakRange2", "QFixRange4"],["QPeakRange2", "QFixRange4"],["QPeakRange1", "QFixRange4"],["QPeakRange1", "QPeak"]]
+#chargeconfig = [["QPeakRange1", "QFixRange2"],["QPeakRange1", "QFixRange2"],["QPeakRange1", "QPeak"],["QPeakRange1", "QFixRange3"]]
+
+gains = []
 
 ####################################################################################################################################
 # PROGRAMM WELCOMES THE USER AND ASKS FOR RUN AND CH NUMBERS TO CREATE THE DATA FRAME FROM NTUPLES                                 #
@@ -51,11 +53,10 @@ for run, ch in iter.product(range(0,np.size(run_list)),range(0,np.size(ch_list))
     charge = chargeconfig[ch_list[ch]]
     zoom = False
 
+    print("\n___RUN %i CH %i___"%(run_list[run],ch_list[ch]))
     rate, nevents, dfout = charge_map(raw_data[run][ch],run_list[run],ch_list[ch],month,charge,automatic,zoom)
-    #charge_map(list[run][ch],run_list[run],ch_list[ch],charge,automatic,zoom)
     q_vs_amp(dfout,run_list[run],ch_list[ch],month,charge[0])
 
-    print("\n___RUN %i CH %i___"%(run_list[run],ch_list[ch]))
     print("\nSelected %i of %i events"%(dfout["evt"].size,raw_data[run][ch]["evt"].size))
     print("Evaluated rate = %f Hz\n"%rate)
     rates.append(rate)
