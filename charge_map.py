@@ -1,5 +1,5 @@
 #___IMPORT MODULES___
-from tkinter import Y
+
 import numpy as np
 import itertools as iter
 import matplotlib.pyplot as plt
@@ -18,8 +18,9 @@ fit = []
 rates = []
 
 #___PATH TO NTUPLE___
-path = "/Users/sergio/DATA/JAN_22/AnalysisROOT/"
+#path = "/Users/sergio/DATA/JAN_22/AnalysisROOT/"
 #path = "/pc/choozdsk01/palomare/SiPM/SC_Fuente_Alpha_Dic/AnalysisROOT/"
+path = "/pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Feb22_2/AnalysisROOT/"
 
 #___PARTIAL AND TOTAL CHARGE RANGES FOR EACH CHANNEL___
 #chargeconfig = [          [] #SiPM 1                    [] #SiPM 2                     [] PMT                  [] SC            ]

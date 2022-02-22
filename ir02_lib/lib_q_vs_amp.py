@@ -34,28 +34,29 @@ def q_vs_amp(dfin,run,ch,month,charge):
     plt.xlabel("Amp (ADC counts)", fontsize=12)
     plt.ylabel("Total Charge (%s) in pC"%charge, fontsize=12)
 
-    with plt.ion():
-        tellme("Press any key to show fit")
-        plt.waitforbuttonpress(-1); test = False
-        #n = 0
-        while test == False:
-           
-            popt, pcov = curve_fit(lin_func,np_amp,np_q)
-            perr = np.sqrt(np.diag(pcov))
-            print("\nFit parameters:")
-            print("Line slope = %.2f +- %.4f (%.4f%%)"%(popt[0],perr[0],100*perr[0]/popt[0]))
-            print("y-Axis intersection = %.2f +- %.4f (%.4f%%)\n"%(popt[1],perr[1],100*perr[1]/popt[1]))
+    plt.ion()
+    tellme("Press any key to show fit")
+    plt.waitforbuttonpress(-1); test = False
+    #n = 0
+    while test == False:
+        
+        popt, pcov = curve_fit(lin_func,np_amp,np_q)
+        perr = np.sqrt(np.diag(pcov))
+        print("\nFit parameters:")
+        print("Line slope = %.2f +- %.4f (%.4f%%)"%(popt[0],perr[0],100*perr[0]/popt[0]))
+        print("y-Axis intersection = %.2f +- %.4f (%.4f%%)\n"%(popt[1],perr[1],100*perr[1]/popt[1]))
 
-            """
-            n = n+1
-            fit = lin_fit(dfin,run,ch,charge,n)
-            x = np.linspace(np.min(np_amp), np.max(np_amp), 1000)
-            plt.plot(x, fit(x), label = fit)
-            plt.legend()
-            """
-            tellme("Click to exit")
-            plt.plot(np_amp, lin_func(np_amp, *popt))
-            test = plt.waitforbuttonpress(-1)
+        """
+        n = n+1
+        fit = lin_fit(dfin,run,ch,charge,n)
+        x = np.linspace(np.min(np_amp), np.max(np_amp), 1000)
+        plt.plot(x, fit(x), label = fit)
+        plt.legend()
+        """
+        tellme("Click to exit")
+        plt.plot(np_amp, lin_func(np_amp, *popt),color="k")
+        test = plt.waitforbuttonpress(-1)
 
     plt.clf()
+    plt.ioff()
     #plt.close("all") 
