@@ -1,3 +1,4 @@
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -66,7 +67,6 @@ def particle_id(dfin,run,ch,month,charge,automatic="yes",zoom=False):
     plt.axhline(ypeak, linestyle = '--',color='crimson', label= "Maximum value found at %.2f"%ypeak)
     plt.xlabel("Amp (ADC counts)", fontsize=12)
     plt.ylabel(charge[0]+"/"+charge[1], fontsize=12)
-    plt.legend()
     
     if auto == True:
         lim_counts = counts[x_ind][y_ind]*5e-4
@@ -113,6 +113,7 @@ def particle_id(dfin,run,ch,month,charge,automatic="yes",zoom=False):
         plt.plot([amp_min,amp_max],[f90_max,f90_max],color="k")
         plt.plot([amp_min,amp_min],[f90_min,f90_max],color="k")
         plt.plot([amp_max,amp_max],[f90_min,f90_max],color="k")
+        plt.legend()
         plt.show()
         test = plt.waitforbuttonpress()
         interactive = False
@@ -170,14 +171,16 @@ def particle_id(dfin,run,ch,month,charge,automatic="yes",zoom=False):
 
     else:
         #___ASK IN TERMINAL FOR F90 RANGE TO COUNT EVENTS___
+        default_cut = 45
         print("\nINPUT RANGE FOR EVENT COUNTING\n")
-        #plt.axhline(.7)
-        default = input("Use default cut (0.7)? (yes / no): ")
+        plt.show();plt.axhline(yedges[y_ind-default_cut], color = "k", label = "Default cut")
+        plt.legend()
+        default = input("Use default cut (%.2f)? (yes / no): "%(yedges[y_ind-default_cut]))
         
         if default in yes_string:
             amp_min = 0
             amp_max = np.max(np_amp)
-            f90_min = 0.7
+            f90_min = yedges[y_ind-default_cut]
             f90_max = 1
         
         elif default in no_string:
