@@ -116,7 +116,7 @@ class my_wvf:
 def func(x, a, c):
     return a*np.exp(-x/c)
 
-def pdf(x, m, sd, norm="standard", n=2):
+def pdf(x, m, sd, norm ="standard", n=2):
     A=1
     mean = m
     std = sd
@@ -124,5 +124,55 @@ def pdf(x, m, sd, norm="standard", n=2):
         A=1/(std * np.sqrt(2 * np.pi))
     else:
         A=norm 
+
     y_out = A*np.exp( - (x - mean)**n / (2 * std**n))
+    
     return y_out
+
+def signal_int(name,data,timebin,detector,th = 0.1):
+    
+    detector_list = ["SiPM","PMT","SC"]
+    conv_factor = [250,50,1030]
+    for det in range(len(detector_list)):
+        if detector == detector_list[det]:
+            factor = (16384.0/2.0)*conv_factor[det]
+
+    max_index = np.argmax(data)
+
+    for i in range(len(data[max_index:])):
+        if detector == "SC":
+            if data[i+max_index] >= 0:
+                end_waveform = i+max_index
+            else:
+                break
+        else:
+            if data[i+max_index] >= th:
+                end_waveform = i+max_index
+            else:
+                break
+    # print("End Waveform = %i"%end_waveform)
+
+    for j in range(len(data[:max_index])):
+        if data[max_index-j] >= th:
+            start_waveform = max_index-j
+        else:
+            break       
+    # print("Start Waveform = %i"%start_waveform)
+        
+    integral = 0
+    for k in range(len(data[start_waveform:end_waveform])):
+        integral = integral + 1e12*timebin*data[start_waveform+k]/factor
+    
+    print("\n%s: Integrated charge = %.2e pC for %s"%(name,integral,detector))
+
+    return integral,end_waveform,start_waveform
+
+def conv_guess3(wvf,t_fast,t_int,t_slow,amp_fast,amp_int,amp_slow):
+    resp = amp_fast*np.exp(-wvf.wvf_x/t_fast)+amp_int*np.exp(-wvf.wvf_x/t_int)+amp_slow*np.exp(-wvf.wvf_x/t_slow)
+    conv = convolve(wvf.wvf,resp)
+    return conv[:len(wvf.wvf_x)]/np.max(conv[:len(wvf.wvf_x)])
+
+def conv_guess2(wvf,t_fast,t_slow,amp_fast,amp_slow):
+    resp = amp_fast*np.exp(-wvf.wvf_x/t_fast)+amp_slow*np.exp(-wvf.wvf_x/t_slow)
+    conv = convolve(wvf.wvf,resp)
+    return conv[:len(wvf.wvf_x)]/np.max(conv[:len(wvf.wvf_x)])

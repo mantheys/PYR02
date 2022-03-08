@@ -4,55 +4,66 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from scipy.optimize import curve_fit
-from ir02_lib.lib import my_wvf,conv_guess
+from ir02_lib.deconv_lib import import_scint_prof,my_wvf,conv_guess2, conv_guess3
 
-path = '/pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Feb22/AnalysisROOT/'
+########################################################################
+#______________________IMPORT_SCINTILLATION_FILES______________________#
+########################################################################
 
-signal1 = 'ScintProf_run02_ch6.root'; label1 = "SC SPE Signal"
-signal2 = 'ScintProf_run13_ch6.root'; label2 = "SC Alpha Signal"
+base_dir = '/pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Feb22/AnalysisROOT/'
 
-signals = [signal1,signal2]; labels = [label1,label2]
+path_luz = 'ScintProf_run46_ch6.root'; label_luz = "SC SPE Signal"
+path_alp = 'ScintProf_run34_ch6.root'; label_alp = "SC Alpha Signal"
 
-wvfs = []
-for s in signals:
-    #Load Raw name
-    inRawName = path+s
-    inRaw = ROOT.TFile.Open(inRawName ,"READ")
-    listkeys_Raw = inRaw.GetListOfKeys()
-    wvf = my_wvf("vector",inRawName,listkeys_Raw[0].GetName())
-    # print(listkeys_Raw[0].GetName())
-    wvfs.append(wvf)
+timebin = 4e-9
+alpha = import_scint_prof(base_dir+path_alp,timebin,normalize=True)
+laser = import_scint_prof(base_dir+path_luz,timebin,normalize=True)
 
-shift_wvfs = [wvfs[0].wvf]
-for n in range(1,len(wvfs)):
-    if np.argmax(wvfs[n].wvf)-np.argmax(wvfs[0].wvf) > 0:
-        shift = np.roll(np.array(wvfs[n].wvf),np.argmax(wvfs[n].wvf)-np.argmax(wvfs[0].wvf))
-        shift = np.roll(np.array(wvfs[n].wvf),110)
-    else:
-        shift = np.roll(np.array(wvfs[n].wvf),np.argmax(wvfs[0].wvf)-np.argmax(wvfs[n].wvf))
-        shift = np.roll(np.array(wvfs[n].wvf),110)
-    shift_wvfs.append(shift)
+if np.argmax(alpha.wvf)-np.argmax(laser.wvf) > 0:
+    laser.wvf = np.roll(np.array(laser.wvf),np.argmax(alpha.wvf)-np.argmax(laser[0].wvf))
 
-t_fast = 1e-9; t_int = 1e-16; t_slow = 1e-6
+else:
+    alpha.wvf = np.roll(np.array(alpha.wvf),np.argmax(laser.wvf)-np.argmax(alpha.wvf))
 
-n_label = 0
-for shift in shift_wvfs:
-    plt.plot(wvfs[0].wvf_x,shift,label = labels[n_label])
-    n_label = n_label+1
+plt.plot(laser.wvf_x,laser.wvf,label = label_luz)
+plt.plot(alpha.wvf_x,alpha.wvf,label = label_alp)
 
 plt.xlabel("Time in [s]"); plt.ylabel("Normalized Amplitude")
-plt.semilogy()
-plt.xlim(0,20e-6); plt.ylim(1e-6, 1.2)
 
-fit_initials = (t_fast,t_int,t_slow,0.999,0.001)
-fit_limits = ([1e-10,1e-17,1e-8,1e-4,1e-4],[1e-8,1e-5,1e-5,1,0.5])
+########################################################################
+#_____________________CONVOLUTION_AND_FIT_PARAMETERS___________________#
+########################################################################
 
-popt, pcov = curve_fit(conv_guess,wvfs[0],shift_wvfs[1], p0 = fit_initials, bounds = fit_limits)
-conv = conv_guess(wvfs[0],*popt)
-print("Tau_fast = %.2e [s] - Amp = %.2e"%(popt[0],popt[3]))
-print("Tau_int = %.2e [s] - Amp = %.2e"%(popt[1],1-popt[3]-popt[4]))
-print("Tau_slow = %.2e [s]- Amp = %.2e"%(popt[2],popt[4]))
-# plt.plot(wvfs[0].wvf_x,conv,label = "Fitted Convolution")
-plt.axhline(0,color = "grey", ls= ":")
+int_exp = True
+t_fast = 1e-8; t_int = 1e-7; t_slow = 1e-6
+amp_fast = 0.9; amp_int = 0.01; amp_slow = 0.1
+
+if int_exp == False:
+    fit_initials = (t_fast,t_slow,amp_fast,amp_slow)
+    fit_limits = ([1e-9,1e-7,1e-2,1e-2],[1e-7,1e-5,1,1])
+    popt, pcov = curve_fit(conv_guess2,laser,alpha.wvf, p0 = fit_initials, bounds = fit_limits)
+    conv = conv_guess2(laser,*popt)
+    print("Tau_fast = %.2e [s] - Amp = %.2e"%(popt[0],popt[2]))
+    print("Tau_slow = %.2e [s]- Amp = %.2e"%(popt[1],popt[3]))
+
+if int_exp == True:
+    fit_initials = (t_fast,t_int,t_slow,amp_fast,amp_int,amp_slow)
+    fit_limits = ([1e-9,1e-8,1e-7,1e-2,1e-2,1e-2],[1e-7,1e-6,1e-5,1,1,1])
+    popt, pcov = curve_fit(conv_guess3,laser,alpha.wvf, p0 = fit_initials, bounds = fit_limits)
+    conv = conv_guess3(laser,*popt)
+    print("Tau_fast = %.2e [s] - Amp = %.2e"%(popt[0],popt[3]))
+    print("Tau_int = %.2e [s] - Amp = %.2e"%(popt[1],popt[4]))
+    print("Tau_slow = %.2e [s]- Amp = %.2e"%(popt[2],popt[5]))
+
+########################################################################
+#________________________PLOT_FINAL_RESULT_____________________________#
+########################################################################
+
+logy = False
+if logy == True:
+    plt.semilogy(); plt.xlim(0,20e-6); plt.ylim(1e-6, 1.2)
+    
+plt.plot(laser.wvf_x,conv,label = "Fitted Convolution")
+plt.axhline(0,color = "grey", ls = ":")
 plt.legend()
 plt.show()

@@ -110,8 +110,13 @@ def plot_F(mps):
 def func(x, a, c):
     return a*np.exp(-x/c)
 
-def conv_guess(wvf,t_fast,t_int,t_slow,amp_fast,amp_slow):
-    resp = amp_fast*np.exp(-wvf.wvf_x/t_fast)+(1-amp_fast-amp_slow)*np.exp(-wvf.wvf_x/t_int)+amp_slow*np.exp(-wvf.wvf_x/t_slow)
+def conv_guess3(wvf,t_fast,t_int,t_slow,amp_fast,amp_int,amp_slow):
+    resp = amp_fast*np.exp(-wvf.wvf_x/t_fast)+amp_int*np.exp(-wvf.wvf_x/t_int)+amp_slow*np.exp(-wvf.wvf_x/t_slow)
+    conv = convolve(wvf.wvf,resp)
+    return conv[:len(wvf.wvf_x)]/np.max(conv[:len(wvf.wvf_x)])
+
+def conv_guess2(wvf,t_fast,t_slow,amp_fast,amp_slow):
+    resp = amp_fast*np.exp(-wvf.wvf_x/t_fast)+amp_slow*np.exp(-wvf.wvf_x/t_slow)
     conv = convolve(wvf.wvf,resp)
     return conv[:len(wvf.wvf_x)]/np.max(conv[:len(wvf.wvf_x)])
 
@@ -333,3 +338,4 @@ def convolution(path, signals, labels):
     plt.legend()
     plt.show()
     """
+
