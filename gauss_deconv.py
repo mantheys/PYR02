@@ -21,7 +21,7 @@ alpha = import_scint_prof(base_dir+path_alp,timebin,normalize=norm)
 laser = import_scint_prof(base_dir+path_laser,timebin,normalize=norm)
 SPE = import_scint_prof(base_dir+path_SPE,timebin,normalize=norm)
 
-# FORMAT DATA IN COMPACT LIST
+# CALCULATE INTEGRAL 
 x = [alpha.wvf_F_x,alpha.wvf_F,laser.wvf_F]
 alpha_int,end_alpha,start_alpha = signal_int("Alpha",alpha.wvf,timebin,"SiPM",th = 1)
 laser_int,end_laser,start_laser = signal_int("Laser",laser.wvf,timebin,"SiPM",th = 1)
@@ -40,18 +40,18 @@ plt.legend();plt.show()
 
 # SELECT A FILTER STRENGHT THAT ALLOWS YOU TO SEE THE SLOPE OF THE SIGNAL
 # THE CORRECPONDING NORM GAUSS FILTER IS DEFINED AND MULTIPLIED IN FOURIER SPACE
-filter_strenght = 300
-gauss_f = pdf(np.arange(len(x[0])), m = 0, sd = filter_strenght, norm = 1, n = 2.)
-processed_signal=x[1]*(gauss_f)
-plt.plot(abs(x[2]),label = "Laser freq.")
-plt.plot(abs(x[1]), label = "Signal freq.")
-plt.plot(abs(processed_signal), label = "Filtered signal freq.")
+filter_strenght = 500
+gauss_f = pdf(np.arange(len(alpha.wvf_F_x)), m = 0, sd = filter_strenght, norm = 1, n = 2.)
+processed_signal = alpha.wvf_F*(gauss_f)
+plt.plot(laser.wvf_F_x,abs(laser.wvf_F), label = "Laser freq.")
+plt.plot(alpha.wvf_F_x,abs(alpha.wvf_F), label = "Signal freq.")
+plt.plot(alpha.wvf_F_x,abs(processed_signal), label = "Filtered signal freq.")
 plt.semilogy();plt.semilogx()
 plt.legend();plt.show()
 
 # AFTER INVERSE FOURIER TRANSFORM YOU ARE REQUIRED TO SHIFT THE ARRAY TO CENTER THE SIGNAL
 roll_num = 200
-dec2=scipy.fft.irfft(processed_signal/x[2])
+dec2=scipy.fft.irfft(processed_signal/laser.wvf_F)
 dec2=np.roll(dec2,roll_num)
 conv_int,end_conv,start_conv = signal_int("Convolution",dec2,timebin,"SiPM",th = 1e-3)
 
