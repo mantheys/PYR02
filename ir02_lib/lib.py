@@ -12,15 +12,17 @@ class my_wvf:
     smooth=False
     kernel_Done=False
     
-    def __init__(self,f_type="",file_path="",item_path="",timebin=4e-9,wvfalize=True,item=np.zeros(1)):
+    def __init__(self,f_type="",file_path="",item_path="",timebin=4e-9,wvfnorm=True,align=True,item=np.zeros(1)):
         if f_type == "hist":
             self.wvf = tfile_hist2array(file_path,item_path)
         if f_type =="vector":
             self.wvf = tfile_vect2array(file_path,item_path)
         if f_type =="python":
             self.wvf = item
-        if wvfalize:
+        if wvfnorm:
             self.wvf=self.wvf/max(self.wvf)
+        if align:
+            self.wvf=np.roll(self.wvf,100-np.argmax(self.wvf))
         self.timebin=timebin
         N=len(self.wvf)
         self.wvf_x = np.linspace(0,N*timebin,N)
