@@ -1,0 +1,10 @@
+path: /pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Feb22_2/AnalysisROOT/
+detector: SC
+timebin: 4e-9
+int_st: BASEL
+path_alp: Feb_2_ScintProf_run27_ch6.root
+path_las: Feb_2_ScintProf_run11_ch6.root
+path_spe: ScintProfFirstSignalBin_run03_ch6.root
+filename: FEB_2_SC_DAY1_OV3
+f_strength: 75
+reverse: True

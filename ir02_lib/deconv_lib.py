@@ -14,7 +14,7 @@ class my_wvf:
     
     kernel_Done=False
     
-    def __init__(self,f_type="",file_path="",item_path="",timebin=4e-9,normalize=False,align=False,item=np.zeros(1)):
+    def __init__(self,f_type="",file_path="",item_path="",timebin=4e-9,normalize=False,align=False,start=100,cut=0,item=np.zeros(1)):
         if f_type == "hist":
             self.wvf = tfile_hist2array(file_path,item_path)
         if f_type =="vector":
@@ -23,11 +23,12 @@ class my_wvf:
             self.wvf = item
         if normalize:
             self.wvf=self.wvf/max(self.wvf)
-        if align:
-            self.wvf=self.wvf[np.argmax(self.wvf)-200:np.argmax(self.wvf)+4000]
+        if align == True:
+            self.wvf=np.roll(self.wvf,start-np.argmax(self.wvf))
         self.timebin=timebin
+        self.wvf=self.wvf[0:len(self.wvf)-cut]
         N=len(self.wvf)
-        self.wvf_x = x_time=np.linspace(0,N*timebin,N)
+        self.wvf_x = np.linspace(0,N*timebin,N)
         self.doFFT()
         
     def apply_smooth(self,alfa):
@@ -73,12 +74,12 @@ class my_wvf:
         self.wvf_deco_F=self.wvf_F/denominator
         self.wvf_deco=scipy.fft.irfft(self.wvf_deco_F)
 
-def import_scint_prof(path,timebin,normalize,align):
+def import_scint_prof(path,timebin,normalize,align,start,cut):
     inSiPMName = path
     inSiPM = ROOT.TFile.Open(inSiPMName ,"READ")
     listkeys_SiPM = inSiPM.GetListOfKeys()
     print(listkeys_SiPM[0].GetName())
-    return my_wvf("vector",inSiPMName,listkeys_SiPM[0].GetName(),timebin,normalize,align)
+    return my_wvf("vector",inSiPMName,listkeys_SiPM[0].GetName(),timebin,normalize,align,start,cut)
 
 def tfile_hist2array(tfile,hist_path):
     file=TFile( tfile, 'READ' )
@@ -133,8 +134,7 @@ def pdf(x, m, sd, norm ="standard", n=2):
     
     return y_out
 
-def signal_int(name,data,timebin,detector,int_type,th=1e-3,out=False):
-    
+def signal_int(name,data,timebin,detector,int_type,th=1e-3,i_range=10,f_range=1000,out=False):
     detector_list = ["SiPM","PMT","SC"]
     conv_factor = [250,50,1030]
     for det in range(len(detector_list)):
@@ -142,35 +142,40 @@ def signal_int(name,data,timebin,detector,int_type,th=1e-3,out=False):
             factor = (16384.0/2.0)*conv_factor[det]
 
     max_index = np.argmax(data)
+    # th = data[max_index]*th
 
     for i in range(len(data[max_index:])):
-        if detector == "SC":
-            if data[i+max_index] >= 0:
-                end_waveform = i+max_index
-            else:
-                break
-        else:
-            if data[i+max_index] >= th:
-                end_waveform = i+max_index
-            else:
-                break
-    # print("End Waveform = %i"%end_waveform)
+        if data[i+max_index] <= th:
+            end_waveform = i+max_index
+            break
 
     for j in range(len(data[:max_index])):
-        if data[max_index-j] >= th:
+        if data[max_index-j] <= th:
             start_waveform = max_index-j
-        else:
             break       
-    # print("Start Waveform = %i"%start_waveform)
-        
+    
+    if int_type == "RANGE":
+        start_waveform = max_index - i_range
+        end_waveform = max_index + f_range
+
+    if int_type == "ALL":
+        start_waveform = 0
+        end_waveform = len(data)-1
+
     integral = 0
     for k in range(len(data[start_waveform:end_waveform])):
         integral = integral + 1e12*timebin*data[start_waveform+k]/factor
     
-    if out == True:
-        print("\n%s integrated charge:\n %.4e pC for %s"%(name,integral,detector))
+    if int_type == "ALL":
+        start_waveform = 0
+        end_waveform = len(data)
+        for k in range(len(data)):
+            integral = integral + 1e12*timebin*data[start_waveform+k]/factor
 
-    return integral,end_waveform,start_waveform
+    if out == True:
+        print("\n%s integrated charge:\n %.4e pC for %s with type %s"%(name,integral,detector,int_type))
+
+    return integral,end_waveform*timebin,start_waveform*timebin
 
 def conv_guess3(wvf,t_fast,t_int,t_slow,amp_fast,amp_int,amp_slow):
     resp = amp_fast*np.exp(-wvf.wvf_x/t_fast)+amp_int*np.exp(-wvf.wvf_x/t_int)+amp_slow*np.exp(-wvf.wvf_x/t_slow)
@@ -181,3 +186,47 @@ def conv_guess2(wvf,t_fast,t_slow,amp_fast,amp_slow):
     resp = amp_fast*np.exp(-wvf.wvf_x/t_fast)+amp_slow*np.exp(-wvf.wvf_x/t_slow)
     conv = convolve(wvf.wvf,resp)
     return conv[:len(wvf.wvf_x)]/np.max(conv[:len(wvf.wvf_x)])
+
+def import_deconv_runs(path,debug = False):
+    file = open(path,'r')
+    paths = []
+    while True:
+        next_line = file.readline()
+        if next_line.startswith("detector:"):
+            detector = next_line.split()[1]
+            if debug == True:
+                print("Detector: %s"%detector)
+        if next_line.startswith("timebin:"):
+            timebin = float(next_line.split()[1])
+            if debug == True:
+                print("Timebin: %.2e"%timebin)
+        if next_line.startswith("int_st:"):
+            int_st = next_line.split()[1]
+            if debug == True:
+                print("Integration Type: %s"%int_st)
+        if next_line.startswith("path:"):
+            base_dir = next_line.split()[1]
+            paths.append(base_dir)
+        if next_line.startswith("path_alp:"):
+            path_alp = next_line.split()[1]
+            paths.append(path_alp)
+        if next_line.startswith("path_las:"):
+            path_las = next_line.split()[1]
+            paths.append(path_las)
+        if next_line.startswith("path_spe:"):
+            path_spe = next_line.split()[1]
+            paths.append(path_spe)
+        if next_line.startswith("filename:"):
+            filename = next_line.split()[1]
+        if next_line.startswith("f_strength:"):
+            f_stregth = int(next_line.split()[1])
+            if debug == True:
+                print("Filter Strength: %i"%f_stregth)
+        if next_line.startswith("reverse:"):
+            reverse = next_line.split()[1]
+        if not next_line:
+            break
+    # print(next_line.strip())
+    file.close()
+
+    return detector,timebin,int_st,paths,filename,f_stregth,reverse
