@@ -13,7 +13,7 @@ from ir02_lib.deconv_lib import import_scint_prof,pdf,func,my_wvf,signal_int,imp
 
 print("\n### WELCOME TO THE DECONVOLUTION STUDIES ###")
 
-detector,timebin,int_st,paths,filename,filter_strenght,reverse = import_deconv_runs("deconvolution_input/FEB_2_SiPM_DAY2_OV1.txt",debug = True)
+detector,timebin,int_st,paths,filename,filter_strenght,reverse = import_deconv_runs("deconvolution_input/FEB_2_SC_DAY1_OV2.txt",debug = True)
 
 # SELECT THE RIGHT TIME BIN FOR ACCURATE PLOT REPRESENATION
 check = True; autozoom = True; logy = True; norm = False; shift = True; fit = False
@@ -67,7 +67,7 @@ if check == True:
     plt.axvline(f_gauss,color = "k", ls = ":");plt.axvline(i_gauss,color = "k", ls = ":")
     plt.plot(alp.wvf_x,gauss)
     if autozoom == True:
-        plt.xlim(timebin*(np.argmax(gauss)-np.max(gauss)*100),timebin*(np.argmax(gauss)+np.max(gauss)*100))
+        plt.xlim(i_gauss,f_gauss)
     plt.show()
 
 if check == True:
