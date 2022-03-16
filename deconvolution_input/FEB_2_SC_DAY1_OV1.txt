@@ -6,5 +6,5 @@ path_alp: Feb_2_ScintProf_run25_ch6.root
 path_las: Feb_2_ScintProf_run09_ch6.root
 path_spe: ScintProfFirstSignalBin_run01_ch6.root
 filename: FEB_2_SC_DAY1_OV1
-f_strength: 75
+f_strength: 125
 reverse: True

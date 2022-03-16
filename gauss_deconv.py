@@ -13,7 +13,7 @@ from ir02_lib.deconv_lib import import_scint_prof,pdf,func,my_wvf,signal_int,imp
 
 print("\n### WELCOME TO THE DECONVOLUTION STUDIES ###")
 
-detector,timebin,int_st,paths,filename,filter_strenght,reverse = import_deconv_runs("deconvolution_input/FEB_2_SC_DAY1_OV2.txt",debug = True)
+detector,timebin,int_st,paths,filename,filter_strenght,reverse = import_deconv_runs("deconvolution_input/FEB_2_SiPM_DAY2_OV1.txt",debug = True)
 
 # SELECT THE RIGHT TIME BIN FOR ACCURATE PLOT REPRESENATION
 check = True; autozoom = True; logy = True; norm = False; shift = True; fit = False
@@ -91,7 +91,7 @@ dec = np.roll(dec,s_start)
 ref = np.argmax(dec)
 
 if check == True:
-    signal_int("Deconvolution",dec,timebin,detector,"ALL",out = True)
+    conv_int_all,f_conv_all,i_conv_all = signal_int("Deconvolution",dec,timebin,detector,"ALL",out = True)
     # print("\nFull Deconvolution Integral: %.2e"%conv_int)
 
 if detector == "SC":
@@ -104,13 +104,14 @@ if detector == "SC":
             f_index = j
             break
     try:
-        conv_int,f_conv,i_conv = signal_int("Deconvolution",dec,timebin,detector,"RANGE",th = thrld,i_range = i_index, f_range = f_index, out= True)
+        conv_int_range,f_conv_range,i_conv_range = signal_int("Deconvolution",dec,timebin,detector,"RANGE",th = thrld,i_range = i_index, f_range = f_index, out= True)
+        conv_int_basel,f_conv_basel,i_conv_basel = signal_int("Deconvolution",dec,timebin,detector,"BASEL",th = thrld,i_range = i_index, f_range = f_index, out= True)
     except:
         # conv_int,f_conv,i_conv = signal_int("Convolution",dec,timebin,detector,int_st,th = thrld)
         print("\nERROR: %s could not be properly integrated with type: %s"%("Deconvolution","RANGE"))
 else:
-    conv_int,f_conv,i_conv = signal_int("Deconvolution",dec,timebin,detector,int_st,th = thrld)
-
+    conv_int_basel,f_conv_basel,i_conv_basel = signal_int("Deconvolution",dec,timebin,detector,int_st,th = thrld)
+    conv_int_range,f_conv_range,i_conv_range = signal_int("Deconvolution",dec,timebin,detector,"RANGE",th = thrld,i_range = 0,f_range = len(dec)-1)
 try:
     pro_alp_int,f_pro_alp,i_pro_alp = signal_int("Filtered Alpha",amp_test,timebin,detector,"BASEL",th =thrld,out = True)
     print("\nCharge increase after filter application:\n %.2f%%\n"%(100*(pro_alp_int/alp_int-1)))
@@ -139,7 +140,9 @@ if check == True:
 #________________________PLOT_FINAL_RESULT_____________________________#
 ########################################################################
 
-print("\nCharge increase after deconvolution:\n %.2f%%\n"%(100*(conv_int/alp_int-1)))
+print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'RANGE'\n"%(100*(conv_int_range/alp_int-1)))
+print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'BASEL'\n"%(100*(conv_int_basel/alp_int-1)))
+print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'ALL'\n"%(100*(conv_int_all/alp_int-1)))
 
 f = ROOT.TFile("deconvolution_output/"+filename+".root", "RECREATE")
 h = ROOT.TH1D(filename, filename,len(dec),0,len(dec)*4e-9)
@@ -156,7 +159,7 @@ plt.plot(alp.wvf_x,alp.wvf,label = "Raw Alpha Signal")
 # plt.plot(alp.wvf_x,np.roll(alp.wvf,np.argmax(dec)-np.argmax(alp.wvf)),label = "Raw Alpha Signal")
 plt.plot(np.arange(len(dec))*timebin,dec,label = "Deconvolution with Gauss filter")
 # plt.plot(np.arange(ref+ifit,ref+ifit+ffit)*timebin, func(np.arange(0,ffit)*timebin, *popt), label='Fit: tau_slow = %.2e s'%popt[1])
-plt.axvline(f_conv,color = "k", ls = ":");plt.axvline(i_conv,color = "k", ls = ":")
+plt.axvline(f_conv_basel,color = "k", ls = ":");plt.axvline(i_conv_basel,color = "k", ls = ":")
 if logy == True:
     plt.grid(); plt.semilogy()
 if autozoom == True:
