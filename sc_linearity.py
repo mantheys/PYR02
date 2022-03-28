@@ -6,13 +6,16 @@ from scipy.optimize import curve_fit
 def lin_func(x,m):
     return m*x
 
-x = [0,1000]; y = x
+x = [0,1750]; y = x
 
 OV3_x = [948.53,794.96,622.24,529.19,413.56,337.96,121.70,73.51,40.08,17.07,2.28,0.31]
 OV3 = [906.55,829.76,638.17,530.35,461.03,344.93,125.23,77.20,40.60,14.99,2.37,0.30]
 DOV3 = [37.61,31.52,24.67,20.98,16.40,13.40,4.83,2.92,1.59,0.68,0.09,0.01]
+RUN2_OV3 = [1358.378242,1542.23]
 popt_OV3, pcov_OV3 = curve_fit(lin_func, OV3_x, OV3); perr_OV3 = np.sqrt(np.diag(pcov_OV3))
 print("OV 3.0 Fitted slope m = %.3f with ∆m = %.3f"%(popt_OV3,perr_OV3))
+
+OV3_x_new = [1179.050737,1000.126363,791.5764211,656.5634605,553.283815,417.3340776,145.3175057,89.5324455,48.09178049,16.78001496,2.6158322]
 
 OV2_5_x = [840.9603542,704.8088729,551.6699924,469.1717816,366.6587144,299.6341742,107.8952134,65.17442745,35.53057497,15.13728638,2.01830485,0.2788624535]
 OV2_5 = [855.47,778.47,610.02,499.58,420.44,316.30,113.20,70.55,36.95,13.47,2.10,0.27]
@@ -31,6 +34,7 @@ plt.ylabel("Measured PE");plt.xlabel("Theoretical PE")
 plt.plot(x, y, label = "Ref. (Measured PE = Theoretical PE)",alpha = 0.5, color = "k")
 plt.scatter(OV3_x, OV3, label = "Measured PE (OV = 3.0V)")
 plt.errorbar(OV3_x, OV3, xerr=DOV3, fmt="o")
+plt.scatter(RUN2_OV3[0],RUN2_OV3[1],label = "Recovered Data"); plt.errorbar(RUN2_OV3[0],RUN2_OV3[1], xerr=47.52087456, fmt="o")
 
 plt.scatter(OV2_5_x, OV2_5, label = "Measured PE (OV = 2.5V)")
 plt.errorbar(OV2_5_x, OV2_5, xerr=DOV2_5, fmt="o")
