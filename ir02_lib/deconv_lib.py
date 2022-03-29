@@ -7,14 +7,10 @@ from scipy.optimize import curve_fit
 from ROOT import TF2, TH1D, TF1, TFile, TCanvas
 from ROOT import gROOT
 
-
 class my_wvf:
-    
     smooth=False
-    
     kernel_Done=False
-    
-    def __init__(self,f_type="",file_path="",item_path="",timebin=4e-9,normalize=False,align=False,start=100,cut=0,item=np.zeros(1)):
+    def __init__(self,f_type="",file_path="",item_path="",timebin=4e-9,normalize=False,trim=False,align=False,start=100,cut_i=0,cut_f=0,item=np.zeros(1)):
         if f_type == "hist":
             self.wvf = tfile_hist2array(file_path,item_path)
         if f_type =="vector":
@@ -23,10 +19,15 @@ class my_wvf:
             self.wvf = item
         if normalize:
             self.wvf=self.wvf/max(self.wvf)
+        if trim == True:
+            for i in range(len(self.wvf[np.argmax(self.wvf):])):
+                if self.wvf[np.argmax(self.wvf)+i]<0<self.wvf[np.argmax(self.wvf)+i+1]:
+                    self.wvf = self.wvf[:np.argmax(self.wvf)+i+1]
+                    break
         if align == True:
             self.wvf=np.roll(self.wvf,start-np.argmax(self.wvf))
         self.timebin=timebin
-        self.wvf=self.wvf[0:len(self.wvf)-cut]
+        self.wvf=self.wvf[cut_i:len(self.wvf)-cut_f]
         N=len(self.wvf)
         self.wvf_x = np.linspace(0,N*timebin,N)
         self.doFFT()
@@ -74,12 +75,12 @@ class my_wvf:
         self.wvf_deco_F=self.wvf_F/denominator
         self.wvf_deco=scipy.fft.irfft(self.wvf_deco_F)
 
-def import_scint_prof(path,timebin,normalize,align,start,cut):
+def import_scint_prof(path,timebin,normalize,trim,align,start,cut_i,cut_f):
     inSiPMName = path
     inSiPM = ROOT.TFile.Open(inSiPMName ,"READ")
     listkeys_SiPM = inSiPM.GetListOfKeys()
-    print(listkeys_SiPM[0].GetName())
-    return my_wvf("vector",inSiPMName,listkeys_SiPM[0].GetName(),timebin,normalize,align,start,cut)
+    # print(listkeys_SiPM[0].GetName())
+    return my_wvf("vector",inSiPMName,listkeys_SiPM[0].GetName(),timebin,normalize,trim,align,start,cut_i,cut_f)
 
 def tfile_hist2array(tfile,hist_path):
     file=TFile( tfile, 'READ' )
@@ -122,14 +123,11 @@ def func(x, a, c):
     return a*np.exp(-x/c)
 
 def pdf(x, m, sd, norm ="standard", n=2):
-    A=1
-    mean = m
-    std = sd
+    A=1;mean=m;std=sd
     if norm=="standard":
         A=1/(std * np.sqrt(2 * np.pi))
     else:
-        A=norm 
-
+        A=norm
     y_out = A*np.exp( - (x - mean)**n / (2 * std**n))
     
     return y_out
@@ -141,37 +139,51 @@ def signal_int(name,data,timebin,detector,int_type,th=1e-3,i_range=10,f_range=10
         if detector == detector_list[det]:
             factor = (16384.0/2.0)*conv_factor[det]
 
+    integral = 0
+    start_waveform = 0
+    end_waveform = len(data)-1
     max_index = np.argmax(data)
     # th = data[max_index]*th
-
-    for i in range(len(data[max_index:])):
-        if data[i+max_index] <= th:
-            end_waveform = i+max_index
-            break
-
-    for j in range(len(data[:max_index])):
-        if data[max_index-j] <= th:
-            start_waveform = max_index-j
-            break       
-    
-    if int_type == "RANGE":
-        start_waveform = max_index - i_range
-        end_waveform = max_index + f_range
 
     if int_type == "ALL":
         start_waveform = 0
         end_waveform = len(data)-1
+        integral =  1e12*timebin*np.sum(data)/factor
 
-    integral = 0
-    for k in range(len(data[start_waveform:end_waveform])):
-        integral = integral + 1e12*timebin*data[start_waveform+k]/factor
+    if int_type == "BASEL":
+        for i in range(len(data[max_index:])):
+            if data[i+max_index] <= th:
+                end_waveform = i+max_index
+                break
+
+        for j in range(len(data[:max_index])):
+            if data[max_index-j] <= th:
+                start_waveform = max_index-j
+                break       
+        
+        integral =  1e12*timebin*np.sum(data[start_waveform:end_waveform])/factor
+
+    if int_type == "RANGE":
+        start_waveform = max_index - i_range
+        end_waveform = max_index + f_range
+        integral =  1e12*timebin*np.sum(data[start_waveform:end_waveform])/factor
     
-    if int_type == "ALL":
-        start_waveform = 0
-        end_waveform = len(data)
+    if int_type == "THRLD":
         for k in range(len(data)):
-            integral = integral + 1e12*timebin*data[start_waveform+k]/factor
-
+            if data[k]>=th:
+                if integral == 0:
+                   start_waveform = k 
+                end_waveform = k
+                integral = integral + 1e12*timebin*np.sum(data[k])/factor
+    
+    if int_type == "I_THRLD":
+        for k in range(len(data[:np.argmax(data)])):
+            if data[k]<=th:
+                if integral == 0:
+                   start_waveform = k 
+                end_waveform = k
+                integral = integral + 1e12*timebin*np.sum(data[k])/factor
+    
     if out == True:
         print("\n%s integrated charge:\n %.4e pC for %s with type %s"%(name,integral,detector,int_type))
 
@@ -189,7 +201,7 @@ def conv_guess2(wvf,t_fast,t_slow,amp_fast,amp_slow):
 
 def import_deconv_runs(path,debug = False):
     file = open(path,'r')
-    paths = []
+    paths = ["","","",""]
     while True:
         next_line = file.readline()
         if next_line.startswith("detector:"):
@@ -206,16 +218,16 @@ def import_deconv_runs(path,debug = False):
                 print("Integration Type: %s"%int_st)
         if next_line.startswith("path:"):
             base_dir = next_line.split()[1]
-            paths.append(base_dir)
+            paths[0]=base_dir
         if next_line.startswith("path_alp:"):
             path_alp = next_line.split()[1]
-            paths.append(path_alp)
+            paths[1]=path_alp
         if next_line.startswith("path_las:"):
             path_las = next_line.split()[1]
-            paths.append(path_las)
+            paths[2]=path_las
         if next_line.startswith("path_spe:"):
             path_spe = next_line.split()[1]
-            paths.append(path_spe)
+            paths[3]=path_spe
         if next_line.startswith("filename:"):
             filename = next_line.split()[1]
         if next_line.startswith("f_strength:"):
