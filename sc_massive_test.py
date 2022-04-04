@@ -16,7 +16,7 @@ for i in range(12):
     popt, pcov = curve_fit(lin_func, OV, [GAIN_0[i],GAIN_1[i],GAIN_2[i]]); perr = np.sqrt(np.diag(pcov))
     plt.plot([26,27,33.8],[lin_func(26,*popt),lin_func(27,*popt),lin_func(33.8,*popt)])
     print("Breakdown voltage for SC #%i: %.2f"%(i+1,-lin_func(0,*popt)/popt[0]))
-# plt.semilogy()
+
 plt.title("Massive SC testing: Set 1")
 plt.axhline(0, c = "k", ls = ":", alpha = 0.5)
 plt.xlabel("V_op (V)"); plt.ylabel("Gain")

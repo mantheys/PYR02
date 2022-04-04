@@ -6,5 +6,8 @@ path_alp: run15_ScintProfFirstSignalBin_SC.root
 path_las: run50_ScintProfFirstSignalBin_SC.root
 path_spe: run3_ScintProfFirstSignalBin_SC.root
 filename: DIC_SC_DAY1_OV3
-f_strength: 50
+shift: False
+f_strength: 100
 reverse: True
+i_array_cut: 400
+f_array_cut: 125

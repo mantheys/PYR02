@@ -6,5 +6,6 @@ path_alp: run78_ScintProfFirstSignalBin_SC.root
 path_las: Jan_ScintProf_run55_ch6.root
 path_spe: run67_ScintProfFirstSignalBin_SC.root
 filename: JAN_SC_DAY3_OV1
-f_strength: 75
-reverse: True
+f_strength: 100
+reverse: False
+array_cut: 1700

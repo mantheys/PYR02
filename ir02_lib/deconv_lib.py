@@ -10,7 +10,7 @@ from ROOT import gROOT
 class my_wvf:
     smooth=False
     kernel_Done=False
-    def __init__(self,f_type="",file_path="",item_path="",timebin=4e-9,normalize=False,trim=False,align=False,start=100,cut_i=0,cut_f=0,item=np.zeros(1)):
+    def __init__(self,f_type="",file_path="",item_path="",timebin=4e-9,normalize=False,trim=False,align="False",start=100,cut_i=0,cut_f=0,item=np.zeros(1)):
         if f_type == "hist":
             self.wvf = tfile_hist2array(file_path,item_path)
         if f_type =="vector":
@@ -24,7 +24,7 @@ class my_wvf:
                 if self.wvf[np.argmax(self.wvf)+i]<0<self.wvf[np.argmax(self.wvf)+i+1]:
                     self.wvf = self.wvf[:np.argmax(self.wvf)+i+1]
                     break
-        if align == True:
+        if align == "True":
             self.wvf=np.roll(self.wvf,start-np.argmax(self.wvf))
         self.timebin=timebin
         self.wvf=self.wvf[cut_i:len(self.wvf)-cut_f]
@@ -230,6 +230,10 @@ def import_deconv_runs(path,debug = False):
             paths[3]=path_spe
         if next_line.startswith("filename:"):
             filename = next_line.split()[1]
+        if next_line.startswith("shift:"):
+            shift = next_line.split()[1]
+            if debug == True:
+                print("Shiftting: %s"%shift)
         if next_line.startswith("f_strength:"):
             f_stregth = int(next_line.split()[1])
             if debug == True:
@@ -238,7 +242,15 @@ def import_deconv_runs(path,debug = False):
             reverse = next_line.split()[1]
         if not next_line:
             break
+        if next_line.startswith("f_array_cut:"):
+            f_cut = int(next_line.split()[1])
+            if debug == True:
+                print("Array final cut: %i"%f_cut)
+        if next_line.startswith("i_array_cut:"):
+            i_cut = int(next_line.split()[1])
+            if debug == True:
+                print("Array initial cut: %i"%i_cut)    
     # print(next_line.strip())
     file.close()
 
-    return detector,timebin,int_st,paths,filename,f_stregth,reverse
+    return detector,timebin,int_st,paths,filename,shift,f_stregth,reverse,f_cut,i_cut

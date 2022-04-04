@@ -12,11 +12,11 @@ from ir02_lib.deconv_lib import import_scint_prof,pdf,func,my_wvf,signal_int,imp
 
 # WELCOME USER AND IMPORT CONFIG FILE WITH DATA PATHS AND DECONVOLUTION PARAMETERS
 print("\n### WELCOME TO THE DECONVOLUTION STUDIES ###")
-detector,timebin,int_st,paths,filename,filter_strenght,reverse = import_deconv_runs("deconvolution_input/FEB_2_SC_DAY1_OV1.txt",debug = True)
-check = True; autozoom = False; logy = False; shift = True; fit = False; thrld = 1e-2; pro_abs = False; pro_rodrigo = True
+detector,timebin,int_st,paths,filename,shift,filter_strenght,reverse,fnal,s_start = import_deconv_runs("deconvolution_input/DIC_SC_DAY1_OV3.txt",debug = True)
+check = False; autozoom = False; logy = False; fit = False; thrld = 1e-3; pro_abs = False; pro_rodrigo = False
 
 # SELECT THE RIGHT TIME BIN FOR ACCURATE PLOT REPRESENATION
-s_start = 500; init=0; fnal=500; trm = False
+init=0; trm = False; #fnal=500; s_start = 600;
 alp = import_scint_prof(paths[0]+paths[1],timebin,normalize=False,trim=trm,align=shift,start=s_start,cut_i=init,cut_f=fnal)
 las = import_scint_prof(paths[0]+paths[2],timebin,normalize=False,trim=trm,align=shift,start=s_start,cut_i=init,cut_f=fnal)
 """
@@ -51,7 +51,7 @@ if check == True:
     plt.plot(spe.wvf_x,spe.wvf,label="Raw SPE signal")
     plt.xlabel("Time in [s]");plt.ylabel("Amplitude in ADC counts")
     plt.axhline(0, ls="--", color = "k",alpha=0.25)
-    plt.axvline(f_alp_all,  color = "k",ls = ":");plt.axvline(i_alp_all  ,color = "k",ls = ":",label = "Alpha Integration (ALL) Limits")
+    # plt.axvline(f_alp_all,  color = "k",ls = ":");plt.axvline(i_alp_all  ,color = "k",ls = ":",label = "Alpha Integration (ALL) Limits")
     plt.axvline(f_alp_basel,color = "g",ls = ":");plt.axvline(i_alp_basel,color = "g",ls = ":",label = "Alpha Integration (BASEL) Limits")
     plt.axvline(f_alp_thrld,color = "b",ls = ":");plt.axvline(i_alp_thrld,color = "b",ls = ":",label = "Alpha Integration (THRLD) Limits")
     
@@ -131,8 +131,8 @@ dec = np.roll(dec,s_start);ref = np.argmax(dec)
 if pro_abs == True:
     dec = np.abs(dec)
 
-if check == True:
-    conv_int_all,f_conv_all,i_conv_all = signal_int("Deconvolution",dec,timebin,detector,"ALL",out = True)
+# if check == True:
+conv_int_all,f_conv_all,i_conv_all = signal_int("Deconvolution",dec,timebin,detector,"ALL",out = True)
     # print("\nFull Deconvolution Integral: %.2e"%conv_int)
    
 conv_int_range,f_conv_range,i_conv_range = signal_int("Deconvolution",dec,timebin,detector,"RANGE",th = thrld,i_range = np.argmax(alp.wvf)-int(i_alp_basel/timebin),f_range = int(f_alp_basel/timebin)-np.argmax(alp.wvf))
@@ -158,10 +158,11 @@ if fit == True:
     plt.plot(np.arange(ref+ifit,ref+ifit+ffit)*timebin, func(np.arange(0,ffit)*timebin, *popt), label='Fit: tau_slow = %.2e s'%popt[1])
 
 # PRINT CHARGE INFORMATION IN RELATION TO RAW DATA
-print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'ALL'\n"%(100*(conv_int_all/alp_int_all-1)))
+# if check == True:
+print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'ALL'\n"%(100*(conv_int_all/alp_int_basel-1)))
 print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'BASEL'\n"%(100*(conv_int_basel/alp_int_basel-1)))
 print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'RANGE'\n"%(100*(conv_int_range/alp_int_basel-1)))
-print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'THRLD'\n"%(100*(conv_int_thrld/alp_int_thrld-1)))
+print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'THRLD'\n"%(100*(conv_int_thrld/alp_int_basel-1)))
 print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'BASEL' substracting 'I_THRLD'\n"%(100*((conv_int_basel+conv_int_ithrld)/alp_int_basel-1)))
 
 # PLOT DECONVOLUTED WAVEFORM AND RAW DATA

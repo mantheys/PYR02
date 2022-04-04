@@ -6,5 +6,6 @@ path_alp: pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Jan22/AnalysisROOT/run80
 path_las: pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Feb22_2/AnalysisROOT/Feb_2_ScintProf_run11_ch6.root
 path_spe: pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Jan22/AnalysisROOT/run69_ScintProfFirstSignalBin_SC.root
 filename: JAN_SC_DAY3_OV3
-f_strength: 150
+f_strength: 50
 reverse: False
+array_cut: 1900
