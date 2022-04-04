@@ -13,12 +13,12 @@ OV3_x_new = [1179.050737,1000.126363,791.5764211,656.5634605,553.283815,417.3340
 OV3 = [906.55,829.76,638.17,530.35,461.03,344.93,125.23,77.20,40.60,14.99,2.37,0.30]
 DOV3 = [37.61,31.52,24.67,20.98,16.40,13.40,4.83,2.92,1.59,0.68,0.09,0.01]
 DOV3_new = [112.2699529,95.23266141,75.37440477,62.51838573,52.68403292,39.7388134,13.83722431,8.525335782,4.579329591,1.59780358,0.2490811876,0.02626173603]
-RUN2_OV3 = [1358.378242,1542.23]
+RUN2_OV3 = [1358.378242,1358.378242,1358.378242,1149.20,1392.32,1541.01]
 popt_OV3, pcov_OV3 = curve_fit(lin_func, OV3_x, OV3); perr_OV3 = np.sqrt(np.diag(pcov_OV3))
 print("OV 3.0 Fitted slope m = %.3f with ∆m = %.3f"%(popt_OV3,perr_OV3))
 popt_OV3_new, pcov_OV3_new = curve_fit(lin_func, OV3_x_new, OV3); perr_OV3_new = np.sqrt(np.diag(pcov_OV3_new))
 print("OV 3.0 NEW Fitted slope m = %.3f with ∆m = %.3f"%(popt_OV3_new,perr_OV3_new))
-print("OV 3.0 Slope differnece ∆m = %.3f"%(popt_OV3-popt_OV3_new))
+print("OV 3.0 Slope difference ∆m = %.3f"%(popt_OV3-popt_OV3_new))
 
 OV2_5_x = [840.9603542,704.8088729,551.6699924,469.1717816,366.6587144,299.6341742,107.8952134,65.17442745,35.53057497,15.13728638,2.01830485,0.2788624535]
 OV2_5_x_new = [1045.210673,886.5969172,701.7205433,582.0335926,490.4777466,369.9603574,128.8217743,79.36916086,42.63263715,14.87522986,2.318895742,0.2444914786]
@@ -29,7 +29,7 @@ popt_OV2_5, pcov_OV2_5 = curve_fit(lin_func, OV2_5_x, OV2_5); perr_OV2_5 = np.sq
 print("OV 2.5 Fitted slope m = %.3f with ∆m = %.3f"%(popt_OV2_5,perr_OV2_5))
 popt_OV2_5_new, pcov_OV2_5_new = curve_fit(lin_func, OV2_5_x_new, OV2_5); perr_OV2_5_new = np.sqrt(np.diag(pcov_OV2_5_new))
 print("OV 2.5 NEW Fitted slope m = %.3f with ∆m = %.3f"%(popt_OV2_5_new,perr_OV2_5_new))
-print("OV 2.5 Slope differnece ∆m = %.3f"%(popt_OV2_5-popt_OV2_5_new))
+print("OV 2.5 Slope difference ∆m = %.3f"%(popt_OV2_5-popt_OV2_5_new))
 
 OV2_x = [690.9497196,579.08496,453.263016,385.4808485,301.2540777,246.1853851,88.64884902,53.54860327,29.19262565,12.43709495,1.658279327,0.229118927]
 OV2_x_new = [862.6737762,731.7605246,579.1711915,480.3865193,404.8201005,305.3500187,106.3241788,65.50803151,35.18722017,12.27740114,1.913920894,0.2017931815]
@@ -40,7 +40,7 @@ popt_OV2, pcov_OV2 = curve_fit(lin_func, OV2_x, OV2); perr_OV2 = np.sqrt(np.diag
 print("OV 2.0 Fitted slope m = %.3f with ∆m = %.3f"%(popt_OV2,perr_OV2))
 popt_OV2_new, pcov_OV2_new = curve_fit(lin_func, OV2_x_new, OV2); perr_OV2_new = np.sqrt(np.diag(pcov_OV2_new))
 print("OV 2.0 NEW Fitted slope m = %.3f with ∆m = %.3f"%(popt_OV2_new,perr_OV2_new))
-print("OV 2.0 Slope differnece ∆m = %.3f"%(popt_OV2-popt_OV2_new))
+print("OV 2.0 Slope difference ∆m = %.3f"%(popt_OV2-popt_OV2_new))
 
 plt.title("SC Linearity measured with Laser (405nm)")
 plt.ylabel("Measured PE");plt.xlabel("Theoretical PE")
@@ -54,7 +54,10 @@ plt.errorbar(OV2_5_x, OV2_5, xerr=DOV2_5, fmt="o")
 plt.scatter(OV2_x, OV2, label = "Measured PE (OV = 2.0V) Fitted slope %.3f"%popt_OV2)
 plt.errorbar(OV2_x, OV2, xerr=DOV2, fmt="o")
 
-plt.scatter(RUN2_OV3[0],RUN2_OV3[1],label = "Recovered Data"); plt.errorbar(RUN2_OV3[0],RUN2_OV3[1], xerr=47.52087456, fmt="o")
+plt.scatter(RUN2_OV3[0],RUN2_OV3[3],label = "Recovered Data 1");
+plt.scatter(RUN2_OV3[1],RUN2_OV3[4],label = "Recovered Data 2");
+plt.scatter(RUN2_OV3[2],RUN2_OV3[5],label = "Recovered Data 3"); 
+# plt.errorbar(RUN2_OV3[1],RUN2_OV3[4], xerr=47.52087456, fmt="o")
 plt.legend();plt.show()
 
 plt.title("SC Linearity measured with Laser (405nm)")
