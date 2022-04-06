@@ -6,5 +6,8 @@ path_alp: ScintProf__RUN47_CH0.root
 path_las: Feb_2_ScintProf_run09_ch0.root
 path_spe: ScintProfFirstSignalBin_run35_ch0.root
 filename: FEB_2_SiPM_DAY2_OV1
-f_strength: 600
+shift: True
+f_strength: 500
 reverse: False
+i_array_cut: 500
+f_array_cut: 500

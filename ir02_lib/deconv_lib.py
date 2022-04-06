@@ -151,6 +151,7 @@ def signal_int(name,data,timebin,detector,int_type,th=1e-3,i_range=10,f_range=10
         integral =  1e12*timebin*np.sum(data)/factor
 
     if int_type == "BASEL":
+        th = data[max_index]*th
         for i in range(len(data[max_index:])):
             if data[i+max_index] <= th:
                 end_waveform = i+max_index
@@ -161,6 +162,21 @@ def signal_int(name,data,timebin,detector,int_type,th=1e-3,i_range=10,f_range=10
                 start_waveform = max_index-j
                 break       
         
+        integral =  1e12*timebin*np.sum(data[start_waveform:end_waveform])/factor
+
+    if int_type == "MIXED":
+        th = data[max_index]*th
+        for j in range(len(data[:max_index])):
+            if data[max_index-j] <= th:
+                start_waveform = max_index-j
+                break       
+        end_waveform = max_index+2000
+
+        integral =  1e12*timebin*np.sum(data[start_waveform:end_waveform])/factor    
+
+    if int_type == "FIXED":
+        start_waveform = max_index - 20
+        end_waveform = max_index + 2000       
         integral =  1e12*timebin*np.sum(data[start_waveform:end_waveform])/factor
 
     if int_type == "RANGE":
@@ -176,14 +192,17 @@ def signal_int(name,data,timebin,detector,int_type,th=1e-3,i_range=10,f_range=10
                 end_waveform = k
                 integral = integral + 1e12*timebin*np.sum(data[k])/factor
     
-    if int_type == "I_THRLD":
-        for k in range(len(data[:np.argmax(data)])):
-            if data[k]<=th:
-                if integral == 0:
-                   start_waveform = k 
-                end_waveform = k
-                integral = integral + 1e12*timebin*np.sum(data[k])/factor
-    
+    if int_type == "UNDER":
+        for i in range(len(data[max_index:])):
+            if data[i+max_index] < 0.:
+                start_waveform = i+max_index
+                break
+        for j in range(len(data[start_waveform:])):
+            if data[j+start_waveform] < 0. < data[j+start_waveform+1]:
+                end_waveform = j+start_waveform+1
+                break
+        integral =  1e12*timebin*np.sum(data[start_waveform:end_waveform])/factor
+
     if out == True:
         print("\n%s integrated charge:\n %.4e pC for %s with type %s"%(name,integral,detector,int_type))
 

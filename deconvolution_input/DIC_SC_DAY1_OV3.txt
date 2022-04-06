@@ -2,12 +2,13 @@ path: /pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Dic21/AnalysisROOT/
 detector: SC
 timebin: 4e-9
 int_st: BASEL
-path_alp: run15_ScintProfFirstSignalBin_SC.root
-path_las: run50_ScintProfFirstSignalBin_SC.root
-path_spe: run3_ScintProfFirstSignalBin_SC.root
+path_alp: run64_ScintProfFirstSignalBin_ch4.root
+path_las: run50_ScintProfFirstSignalBin_ch4.root
+path_spe: run03_ScintProfFirstSignalBin_ch4.root
 filename: DIC_SC_DAY1_OV3
-shift: False
+shift: True
 f_strength: 100
-reverse: True
-i_array_cut: 400
-f_array_cut: 125
+reverse: False
+i_array_cut: 200
+f_array_cut: 500
+

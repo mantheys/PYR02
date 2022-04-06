@@ -6,5 +6,8 @@ path_alp: pending
 path_las: Feb_2_ScintProf_run11_ch0.root
 path_spe: ScintProfFirstSignalBin_run37_ch0.root
 filename: FEB_2_SiPM_DAY2_OV3
-f_strength: 600
+shift: True
+f_strength: 100
 reverse: False
+i_array_cut: 500
+f_array_cut: 500
