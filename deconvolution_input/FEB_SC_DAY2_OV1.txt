@@ -7,7 +7,7 @@ path_las: run45_ScintProfFirstSignalBin_ch6.root
 path_spe: run22_ScintProfFirstSignalBin_ch6.root
 filename: FEB_SC_DAY2_OV1
 shift: True
-f_strength: 500
+f_strength: 100
 reverse: True
 i_array_cut: 500
 f_array_cut: 500

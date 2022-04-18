@@ -12,12 +12,12 @@ from ir02_lib.deconv_lib import import_scint_prof,my_wvf,conv_guess2, conv_guess
 
 base_dir = '/pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Feb22/AnalysisROOT/'
 
-path_luz = 'ScintProf_run46_ch6.root'; label_luz = "SC SPE Signal"
-path_alp = 'ScintProf_run34_ch6.root'; label_alp = "SC Alpha Signal"
+path_luz = 'run46_ScintProfFirstSignalBin_SC.root'; label_luz = "SC SPE Signal"
+path_alp = 'run34_ScintProfFirstSignalBin_ch6.root'; label_alp = "SC Alpha Signal"
 
 timebin = 4e-9
-alpha = import_scint_prof(base_dir+path_alp,timebin,normalize=True)
-laser = import_scint_prof(base_dir+path_luz,timebin,normalize=True)
+alpha = import_scint_prof(base_dir+path_alp,timebin,normalize=True,trim=False,align=True,start=400,cut_i=0,cut_f=0)
+laser = import_scint_prof(base_dir+path_luz,timebin,normalize=True,trim=False,align=True,start=400,cut_i=0,cut_f=0)
 
 if np.argmax(alpha.wvf)-np.argmax(laser.wvf) > 0:
     laser.wvf = np.roll(np.array(laser.wvf),np.argmax(alpha.wvf)-np.argmax(laser[0].wvf))

@@ -6,7 +6,7 @@ from scipy.optimize import curve_fit
 def lin_func(x,m):
     return m*x
 
-x = [0,1750]; y = x
+x = [0,1500]; y = x
 
 OV3_x = [948.53,794.96,622.24,529.19,413.56,337.96,121.70,73.51,40.08,17.07,2.28,0.31]
 OV3_x_new = [1179.050737,1000.126363,791.5764211,656.5634605,553.283815,417.3340776,145.3175057,89.5324455,48.09178049,16.78001496,2.6158322,0.2757988084]
@@ -45,6 +45,11 @@ print("OV 2.0 Slope difference ∆m = %.3f"%(popt_OV2-popt_OV2_new))
 plt.title("SC Linearity measured with Laser (405nm)")
 plt.ylabel("Measured PE");plt.xlabel("Theoretical PE")
 plt.plot(x, y, label = "Ref. (Measured PE = Theoretical PE)",alpha = 0.5, color = "k")
+
+plt.plot(OV3_x,lin_func(OV3_x,popt_OV3),c='tab:blue')
+plt.plot(OV2_5_x,lin_func(OV2_5_x,popt_OV2_5),c='tab:orange')
+plt.plot(OV2_x,lin_func(OV2_x,popt_OV2),c='tab:green')
+
 plt.scatter(OV3_x, OV3, label = "Measured PE (OV = 3.0V) Fitted slope %.3f"%popt_OV3)
 plt.errorbar(OV3_x, OV3, xerr=DOV3, fmt="o")
 
@@ -63,26 +68,32 @@ plt.legend();plt.show()
 plt.title("SC Linearity measured with Laser (405nm)")
 plt.ylabel("Measured PE");plt.xlabel("Theoretical PE")
 plt.plot(x, y, label = "Ref. (Measured PE = Theoretical PE)",alpha = 0.5, color = "k")
-plt.scatter(OV3_x, OV3, label = "Measured PE (OV = 3.0V) %.3f"%popt_OV3)
-plt.scatter(OV3_x_new, OV3, label = "New Measured PE (OV = 3.0V) %.3f"%popt_OV3_new)
-plt.errorbar(OV3_x, OV3, xerr=DOV3, fmt="o")
-plt.errorbar(OV3_x_new, OV3, xerr=DOV3_new, fmt="o")
+plt.plot(OV3_x,lin_func(OV3_x,popt_OV3),c='tab:blue')
+plt.plot(OV3_x_new,lin_func(OV3_x_new,popt_OV3_new),c='b')
+plt.scatter(OV3_x, OV3, label = "Measured PE (OV = 3.0V) %.3f"%popt_OV3,c='tab:blue')
+plt.scatter(OV3_x_new, OV3, label = "New Measured PE (OV = 3.0V) %.3f"%popt_OV3_new,c='b')
+plt.errorbar(OV3_x, OV3, xerr=DOV3, fmt="o",c='tab:blue')
+plt.errorbar(OV3_x_new, OV3, xerr=DOV3_new, fmt="o",c='b')
 plt.legend();plt.show()
 
 plt.title("SC Linearity measured with Laser (405nm)")
 plt.ylabel("Measured PE");plt.xlabel("Theoretical PE")
 plt.plot(x, y, label = "Ref. (Measured PE = Theoretical PE)",alpha = 0.5, color = "k")
-plt.scatter(OV2_5_x, OV2_5, label = "Measured PE (OV = 2.5V) %.3f"%popt_OV2_5)
-plt.scatter(OV2_5_x_new, OV2_5, label = "New Measured PE (OV = 2.5V) %.3f"%popt_OV2_5_new)
-plt.errorbar(OV2_5_x, OV2_5, xerr=DOV2_5, fmt="o")
-plt.errorbar(OV2_5_x_new, OV2_5, xerr=DOV2_5_new, fmt="o")
+plt.plot(OV2_5_x,lin_func(OV2_5_x,popt_OV2_5),c='tab:orange')
+plt.plot(OV2_5_x_new,lin_func(OV2_5_x_new,popt_OV2_5_new),c='orange')
+plt.scatter(OV2_5_x, OV2_5, label = "Measured PE (OV = 2.5V) %.3f"%popt_OV2_5,c='tab:orange')
+plt.scatter(OV2_5_x_new, OV2_5, label = "New Measured PE (OV = 2.5V) %.3f"%popt_OV2_5_new,c='orange')
+plt.errorbar(OV2_5_x, OV2_5, xerr=DOV2_5, fmt="o",c='tab:orange')
+plt.errorbar(OV2_5_x_new, OV2_5, xerr=DOV2_5_new, fmt="o",c='orange')
 plt.legend();plt.show()
 
 plt.title("SC Linearity measured with Laser (405nm)")
 plt.ylabel("Measured PE");plt.xlabel("Theoretical PE")
 plt.plot(x, y, label = "Ref. (Measured PE = Theoretical PE)",alpha = 0.5, color = "k")
-plt.scatter(OV2_x, OV2, label = "Measured PE (OV = 2.0V) %.3f"%popt_OV2)
-plt.scatter(OV2_x_new, OV2, label = "New Measured PE (OV = 2.0V) %.3f"%popt_OV2_new)
-plt.errorbar(OV2_x, OV2, xerr=DOV2, fmt="o")
-plt.errorbar(OV2_x_new, OV2, xerr=DOV2_new, fmt="o")
+plt.plot(OV2_x,lin_func(OV2_x,popt_OV2),c='tab:green')
+plt.plot(OV2_x_new,lin_func(OV2_x_new,popt_OV2_new),c='g')
+plt.scatter(OV2_x, OV2, label = "Measured PE (OV = 2.0V) %.3f"%popt_OV2,c='tab:green')
+plt.scatter(OV2_x_new, OV2, label = "New Measured PE (OV = 2.0V) %.3f"%popt_OV2_new,c='g')
+plt.errorbar(OV2_x, OV2, xerr=DOV2, fmt="o",c='tab:green')
+plt.errorbar(OV2_x_new, OV2, xerr=DOV2_new, fmt="o",c='g')
 plt.legend();plt.show()

@@ -7,7 +7,7 @@ path_las: run11_ScintProfFirstSignalBin_ch0.root
 path_spe: run03_ScintProfFirstSignalBin_ch0.root
 filename: FEB_2_SiPM_DAY1_OV3
 shift: True
-f_strength: 500
+f_strength: 100
 reverse: False
 i_array_cut: 500
 f_array_cut: 500

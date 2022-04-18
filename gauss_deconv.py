@@ -12,8 +12,8 @@ from ir02_lib.deconv_lib import import_scint_prof,pdf,func,my_wvf,signal_int,imp
 
 # WELCOME USER AND IMPORT CONFIG FILE WITH DATA PATHS AND DECONVOLUTION PARAMETERS
 print("\n### WELCOME TO THE DECONVOLUTION STUDIES ###")
-detector,timebin,int_st,paths,filename,shift,filter_strenght,reverse,fnal,s_start = import_deconv_runs("deconvolution_input/DIC_SC_DAY1_OV1.txt",debug = True)
-check = False; autozoom = False; logy = False; norm = True; fit = False; thrld = 1e-3; pro_abs = False; pro_rodrigo = False
+detector,timebin,int_st,paths,filename,shift,filter_strenght,reverse,fnal,s_start = import_deconv_runs("deconvolution_input/FEB_SC_DAY2_OV1.txt",debug = True)
+check = False; autozoom = False; logy = True; norm = True; fit = False; thrld = 1e-3; pro_abs = False; pro_rodrigo = False
 term_output = check
 # SELECT THE RIGHT TIME BIN FOR ACCURATE PLOT REPRESENATION
 init=0; trm = False; #fnal=500; s_start = 600;
@@ -100,6 +100,7 @@ if check == True:
         plt.xlim(alp.wvf_x[np.argmax(alp.wvf)-200],alp.wvf_x[np.argmax(alp.wvf)+200]);plt.ylim(1e-3,2*np.max(alp.wvf))
     
     plt.legend();plt.show()
+    print("\n-------------------------------------------------------------")
 
 ########################################################################
 #_________EVALUATE DECONVOLUTION AND FILTER IN FOURIER SPACE___________#
@@ -154,6 +155,9 @@ if detector == "SiPM":
         print("\nCharge increase after filter application:\n %.4f%% with integration type 'MIXED'\n"%(100*(pro_alp_int/alp_int-1)))
     except:
         print("\nERROR: %s could not be properly integrated with type: %s"%("Filtered Alpha","MIXED"))
+
+print("\n-------------------------------------------------------------")
+
 ########################################################################
 #________________________PLOT_FINAL_RESULT_____________________________#
 ########################################################################
@@ -199,10 +203,10 @@ plt.legend(); plt.show()
 
 # EXPORT DECONVOLUTED WAVEFORM TO ROOT FORMAT
 f = ROOT.TFile("deconvolution_output/"+filename+"_f%i.root"%filter_strenght, "RECREATE")
-h = ROOT.TH1D(filename, filename,len(dec),0,len(dec)*4e-9)
+h = ROOT.TH1D(filename+"_f%i"%filter_strenght, filename+"_f%i"%filter_strenght,len(dec),0,len(dec)*4e-9)
 for i in range(len(dec)):
     h.SetBinContent(i,dec[i]) # Use the following lines to feed the Fill method of the histograms in order to fill
     h.SetBinError(i,dec[i]*1e-2)
 h.Write() # Here write the three histograms on the file and close the file
-print("Generated output file: %s_f%i.root"%(f.GetListOfKeys()[0].GetName(),filter_strenght))
+print("Generated output file: %s.root"%f.GetListOfKeys()[0].GetName())
 f.Close()

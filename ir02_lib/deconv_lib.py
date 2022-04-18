@@ -3,6 +3,7 @@ import ROOT
 import matplotlib.pyplot as plt
 import scipy.fft
 
+from numpy import convolve
 from scipy.optimize import curve_fit
 from ROOT import TF2, TH1D, TF1, TFile, TCanvas
 from ROOT import gROOT
