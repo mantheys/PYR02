@@ -1,0 +1,13 @@
+MSCT__run01_ch0.root SC_1_Luz
+MSCT__run01_ch1.root SC_2_Luz
+MSCT__run01_ch3.root SC_3_Luz
+MSCT__run01_ch4.root SC_4_Luz
+MSCT__run01_ch5.root SC_5_Luz
+MSCT__run01_ch6.root SC_6_Luz
+MSCT__run02_ch0.root SC_7_Luz
+MSCT__run02_ch1.root SC_8_Luz
+MSCT__run02_ch3.root SC_9_Luz
+MSCT__run02_ch4.root SC_10_Luz
+MSCT__run02_ch5.root SC_11_Luz
+MSCT__run02_ch6.root SC_12_Luz
+MSCT__run02_ch7.root SC_13_Luz

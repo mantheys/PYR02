@@ -1,0 +1,13 @@
+path: /pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Dic21/AnalysisROOT/
+detector: SiPM
+timebin: 4e-9
+int_st: BASEL
+path_alp: run67_ScintProfFirstSignalBin_SiPM.root
+path_las: run48_ScintProfFirstSignalBin_ch4.root
+path_spe: run01_ScintProfFirstSignalBin_ch4.root
+filename: DIC_SiPM_DAY1_OV2_MUON
+shift: True
+f_strength: 100
+reverse: False
+i_array_cut: 200
+f_array_cut: 400

@@ -3,26 +3,52 @@ import scipy
 import numpy as np
 import matplotlib.pyplot as plt
 
+from scipy import signal
 from scipy.optimize import curve_fit
 from ir02_lib.deconv_lib import import_scint_prof,pdf,func,my_wvf,signal_int,import_deconv_runs
+
+def low_pass_filter(array,timebin,cut_off,grade):
+    fc = cut_off  # Cut-off frequency of the filter
+    d_freq = 1/(timebin*len(array))
+    w = fc/(d_freq/2) # Normalize the frequency
+    b, a = signal.butter(grade, w, 'low')
+    output = signal.filtfilt(b,a,array,method='gust')
+    return output
 
 ########################################################################
 #______________________IMPORT_SCINTILLATION_FILES______________________#
 ########################################################################
 
 # WELCOME USER AND IMPORT CONFIG FILE WITH DATA PATHS AND DECONVOLUTION PARAMETERS
-print("\n### WELCOME TO THE DECONVOLUTION STUDIES ###")
-detector,timebin,int_st,paths,filename,shift,filter_strenght,reverse,fnal,s_start = import_deconv_runs("deconvolution_input/FEB_SC_DAY2_OV1.txt",debug = True)
-check = False; autozoom = False; logy = True; norm = True; fit = False; thrld = 1e-3; pro_abs = False; pro_rodrigo = False
+print("\n### WELCOME TO THE DECONVOLUTION STUDIES ###\n")
+
+decon_runs = "deconvolution_input/FEB_2_SC_DAY2_OV2_MUON.txt"
+detector,timebin,int_st,paths,filename,shift,filter_strenght,reverse,fnal,s_start,particle_label = import_deconv_runs(decon_runs,debug = True)
+
+check       = False
+autozoom    = False
+logy        = False
+norm        = False
+fit         = False
+thrld       = 1e-3
+pro_abs     = False
+pro_rodrigo = False
+inv         = False
 term_output = check
+
 # SELECT THE RIGHT TIME BIN FOR ACCURATE PLOT REPRESENATION
 init=0; trm = False; #fnal=500; s_start = 600;
-alp = import_scint_prof(paths[0]+paths[1],timebin,normalize=norm,trim=trm,align=shift,start=s_start,cut_i=init,cut_f=fnal)
-las = import_scint_prof(paths[0]+paths[2],timebin,normalize=norm,trim=trm,align=shift,start=s_start,cut_i=init,cut_f=fnal)
-spe = import_scint_prof(paths[0]+paths[3],timebin,normalize=norm,trim=trm,align=shift,start=s_start,cut_i=0,cut_f=0)
+alp = import_scint_prof(paths[0]+paths[1],timebin,normalize=norm,trim=trm,align=shift,start=s_start,cut_i=init,cut_f=fnal,invert=inv)
+las = import_scint_prof(paths[0]+paths[2],timebin,normalize=norm,trim=trm,align=shift,start=s_start,cut_i=init,cut_f=fnal,invert=False)
+spe = import_scint_prof(paths[0]+paths[3],timebin,normalize=norm,trim=trm,align=shift,start=s_start,cut_i=init,cut_f=fnal,invert=False)
 
+if inv == True:
+    alp.wvf = -alp.wvf
+    alp.wvf_F = scipy.fft.rfft(alp.wvf,len(alp.wvf))
+
+# spe = import_scint_prof(paths[0]+paths[3],timebin,normalize=norm,trim=trm,align=shift,start=s_start,cut_i=0,cut_f=0)
 # CALCULATE INTEGRAL OF RAW DATA
-labels = ["Alpha","Laser","SPE"]
+labels = [particle_label,"Laser","SPE"]
 
 # CHECK INTEGRATION METHODS FOR RAW ALPHA SIGNALq
 alp_int_all,f_alp_all,i_alp_all       = signal_int(labels[0],alp.wvf,timebin,detector,"ALL"  ,th = thrld,out = term_output)
@@ -44,18 +70,20 @@ if detector == "SC":
     plt.axvline(f_alp_under,color = "k",ls = ":");plt.axvline(i_alp_under,color = "k",ls = ":",label = "Alpha Integration (UNDER) Limits")
 
 # FIRST PLOT TO VISUALIZE DATA (VERTICAL LINES SHOW INTEGRATION LIMITS OF ALPHA SIGNAL)
-plt.plot(spe.wvf_x,spe.wvf,c="g",label="Raw SPE signal")
-plt.plot(alp.wvf_x,alp.wvf,c="b",label="Raw Alpha signal")
-plt.plot(las.wvf_x,las.wvf,c="r",label="Raw Laser signal")
+if check == True:    
+    plt.plot(spe.wvf_x,spe.wvf,c="g",label="Raw %s signal"%labels[2])
+    plt.plot(alp.wvf_x,alp.wvf,c="b",label="Raw %s signal"%labels[0])
+    plt.plot(las.wvf_x,las.wvf,c="r",label="Raw %s signal"%labels[1])
 
-plt.xlabel("Time in [s]");plt.ylabel("Amplitude in ADC counts")
-plt.axhline(0, ls="--", color = "k",alpha=0.25)
+    plt.xlabel("Time in [s]");plt.ylabel("Amplitude in ADC counts")
+    plt.axhline(0, ls="--", color = "k",alpha=0.25)
 
-if autozoom == True:
-    plt.xlim(timebin*(np.argmax(alp.wvf)-100),timebin*(np.argmax(alp.wvf)+1000));plt.ylim()
-if logy == True:
-        plt.semilogy()
-plt.legend();plt.show()
+
+    if autozoom == True:
+        plt.xlim(timebin*(np.argmax(alp.wvf)-100),timebin*(np.argmax(alp.wvf)+1000));plt.ylim()
+    if logy == True:
+            plt.semilogy()
+    plt.legend();plt.show()
 
 print("\n-------------------------------------------------------------")
 
@@ -64,7 +92,20 @@ print("\n-------------------------------------------------------------")
 ########################################################################
 
 # GAUSS FUNCTION IS CREATED IN FOURIER SPACE WITH AMP = 1 TO CONSERVE CHARGE
-gauss_f = pdf(np.arange(len(alp.wvf_F_x)), m = 0, sd = filter_strenght, norm = 1, n = 2.)
+wiener = abs(spe.wvf_F)**2/(abs(spe.wvf_F)**2+abs(noise.wvf_F)**2)
+gauss_f = pdf(np.arange(len(alp.wvf_F_x)), m = 0, sd = filter_strenght, norm = 1, n = 2)
+d_freq = 1/(len(alp.wvf)*timebin)
+
+if len(alp.wvf) % 2 == 0:
+    bandwidth = d_freq*(len(alp.wvf)/2)
+if len(alp.wvf) % 2 != 0:
+    bandwidth = d_freq*(len(alp.wvf)-1)/2
+
+# print(len(alp.wvf))
+# print(d_freq)
+# print(bandwidth)
+gauss_freq = np.fft.rfftfreq(len(gauss_f), d=timebin)
+
 if pro_rodrigo == True:
     gauss_f[0]=0
 gauss = scipy.fft.irfft(gauss_f)
@@ -74,23 +115,43 @@ gauss = np.roll(gauss,int(len(gauss)/2))
 if check == True:
     gauss_int,f_gauss,i_gauss = signal_int("Gauss",gauss,timebin,detector,"BASEL",th = np.max(gauss)*1e-3,out = term_output)
     signal_int("Gauss",gauss,timebin,detector,"ALL",th = 1e-3,out = True)
-    print("\nGaussian FWHM: %.2e [s]"%(timebin*2*np.sqrt(2*np.log(2))*filter_strenght))
+    fwhm = timebin*2*np.sqrt(2*np.log(2))*filter_strenght
+    print("\nGaussian FWHM: %.2e [s]"%fwhm)
     plt.xlabel("Time in [s]");plt.ylabel("Amplitude in a.u.")
-    plt.axvline(f_gauss,color = "k", ls = ":");plt.axvline(i_gauss,color = "k", ls = ":")
+    # plt.axvline(f_gauss,color = "k", ls = ":");plt.axvline(i_gauss,color = "k", ls = ":")
+    plt.axvline(alp.wvf_x[np.argmax(gauss)])
+    plt.axvline(alp.wvf_x[np.argmax(gauss)]+fwhm/2)
+    plt.axvline(alp.wvf_x[np.argmax(gauss)]-fwhm/2)
     plt.plot(alp.wvf_x,gauss)
     
     if autozoom == True:
         plt.xlim(i_gauss,f_gauss)
-    
     plt.show()
 
-pr_signal = alp.wvf_F*(gauss_f)
+filt_power = 1
+
+for i in range(len(gauss_f)):
+    if abs(np.power(gauss_f,filt_power))[i] < 1e-3:
+        print("Gauss Filter Cut-off frequency: %.2E"%alp.wvf_F_x[i])
+        break
+
+freq_cut = 1
+sharp_cutoff = []
+cut_off = 3e7
+for i in range(len(alp.wvf_F_x)):
+    if abs(alp.wvf_F_x[i]) < cut_off:
+        sharp_cutoff.append(1)
+    if abs(alp.wvf_F_x[i]) > cut_off:
+        sharp_cutoff.append(0)
+
+pr_signal = (alp.wvf_F*gauss_f)
+# pr_signal = alp.wvf_F[:-freq_cut]
 amp_test=scipy.fft.irfft(pr_signal)
 # signal_int("Filtered Alpha",amp_test,timebin,detector,"ALL",out = term_output)
 
 if check == True:
     plt.plot(alp.wvf_x,alp.wvf ,label="Raw Alpha signal")
-    plt.plot(alp.wvf_x,amp_test,label="Filtered Alpha Signal",c="b")
+    plt.plot(np.arange(len(amp_test))*timebin,amp_test,label="Filtered Alpha Signal",c="b")
     plt.xlabel("Time in [s]");plt.ylabel("Amplitude in ADC counts")
     
     if logy == True:
@@ -107,24 +168,28 @@ if check == True:
 ########################################################################
 
 if check == True:
-    plt.plot(alp.wvf_F_x,abs(gauss_f), label = "Gauss filter")
+    plt.plot(alp.wvf_F_x,abs(np.power(gauss_f,filt_power)), label = "Gauss filter")
+    plt.plot(alp.wvf_F_x,sharp_cutoff, label = "Sharp filter")
+    # plt.plot(k,abs(h))
+    # plt.plot(gauss_freq,gauss_f_2, label = "Gauss filter 2")
     # plt.plot(las.wvf_F_x,abs(las.wvf_F), label = "Laser freq.")
     plt.plot(las.wvf_F_x,abs(las.wvf_F/np.max(las.wvf_F)),c="r",label = "Norm Laser freq.")
-    plt.plot(alp.wvf_F_x,abs(alp.wvf_F),c="b",label = "Signal freq.")
+    plt.plot(alp.wvf_F_x[:-freq_cut],abs(alp.wvf_F)[:-freq_cut],c="b",label = "Signal freq.")
     # plt.plot(alp.wvf_F_x,abs(pr_signal), label = "Filtered signal freq.")
-    plt.plot(alp.wvf_F_x,abs(pr_signal/(las.wvf_F/np.max(las.wvf_F))), label = "Deconvolved signal (norm laser)")
-    # plt.plot(alp.wvf_F_x,abs(pr_signal/las.wvf_F), label = "Deconvolved signal")
+    plt.plot(alp.wvf_F_x,abs(pr_signal/(las.wvf_F/np.max(las.wvf_F))), label = "Deconvolved signal")
+    # plt.plot(alp.wvf_F_x,abs(output_f), label = "Butterworth filtered signal")
+    # plt.plot(alp.wvf_F_x,abs(alp.wvf_F)/abs(las.wvf_F/np.max(las.wvf_F)), label = "Deconvolved signal (no filter)")
     plt.xlabel("Frequency in [Hz]");plt.ylabel("Amplitude in ADC counts")
     plt.semilogy();plt.semilogx()
-    
+    plt.grid(which='both', axis='both')
     if autozoom == True:
         plt.ylim(1e-6,np.max(abs(alp.wvf_F))*10)
     
     plt.legend();plt.show()
 
 # AFTER INVERSE FOURIER TRANSFORM YOU ARE REQUIRED TO SHIFT THE SIGNAL ARRAY TO RECONSTRUCT THE SHAPE OF A PULSE
-dec=scipy.fft.irfft(pr_signal/(las.wvf_F/np.max(las.wvf_F)))
-# dec=scipy.fft.irfft(pr_signal/las.wvf_F)
+dec = scipy.fft.irfft(pr_signal/np.array(las.wvf_F/np.max(las.wvf_F)))
+
 if reverse == "True":
     dec = dec[::-1]
 dec = np.roll(dec,s_start);ref = np.argmax(dec)
@@ -172,10 +237,10 @@ if fit == True:
 # PRINT CHARGE INFORMATION IN RELATION TO RAW DATA
 if check == True:
     print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'ALL'  \n"%(100*(conv_int_all/alp_int-1)))
-    print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'FIXED'\n"%(100*(conv_int_fixed/alp_int-1)))
-    print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'BASEL'\n"%(100*(conv_int_basel/alp_int-1)))
-    print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'THRLD'\n"%(100*(conv_int_thrld/alp_int-1)))
-    print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'BASEL' substracting 'UNDER'\n"%(100*((conv_int_basel+conv_int_under)/alp_int-1)))
+    # print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'FIXED'\n"%(100*(conv_int_fixed/alp_int-1)))
+    # print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'BASEL'\n"%(100*(conv_int_basel/alp_int-1)))
+    # print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'THRLD'\n"%(100*(conv_int_thrld/alp_int-1)))
+    # print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'BASEL' substracting 'UNDER'\n"%(100*((conv_int_basel+conv_int_under)/alp_int-1)))
     # plt.axvline(f_conv_basel,color = "r", ls = ":");plt.axvline(i_conv_basel,color = "r", ls = ":",label = "(BASEL) Integration Limits")
     # plt.axvline(f_conv_fixed,color = "k", ls = ":");plt.axvline(i_conv_fixed,color = "k", ls = ":",label = "(FIXED) Integration Limits")
 
@@ -185,8 +250,9 @@ print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'RA
 # print("\nCharge increase after deconvolution:\n %.2f%% with integration type 'RANGE'\n"%(100*(1-alp_int/conv_int_range)))
 
 # PLOT DECONVOLUTED WAVEFORM AND RAW DATA
-plt.plot(alp.wvf_x,alp.wvf,label = "Raw Alpha Signal")
+plt.plot(alp.wvf_x,alp.wvf,label = "Raw %s Signal"%labels[0])
 plt.plot(np.arange(len(dec))*timebin,dec,label = "Deconvolution with Gauss filter")
+# plt.plot(np.arange(len(output))*timebin,dec_output,label = "Deconvolution with Butterworth filter")
 plt.axhline(0, ls="--", color = "k",alpha=0.25)
 plt.axvline(f_conv_mixed,color = "b", ls = ":");plt.axvline(i_conv_mixed,color = "b", ls = ":",label = "(MIXED) Integration Limits")
 plt.axvline(f_conv_range,color = "g", ls = ":");plt.axvline(i_conv_range,color = "g", ls = ":",label = "(RANGE) Integration Limits")

@@ -11,22 +11,27 @@ from ROOT import gROOT
 class my_wvf:
     smooth=False
     kernel_Done=False
-    def __init__(self,f_type="",file_path="",item_path="",timebin=4e-9,normalize=False,trim=False,align="False",start=100,cut_i=0,cut_f=0,item=np.zeros(1)):
+    def __init__(self,f_type="",file_path="",item_path="",timebin=4e-9,normalize=False,trim=False,align="False",start=100,cut_i=0,cut_f=0,invert=False,item=np.zeros(1)):
         if f_type == "hist":
             self.wvf = tfile_hist2array(file_path,item_path)
         if f_type =="vector":
             self.wvf = tfile_vect2array(file_path,item_path)
         if f_type =="python":
             self.wvf = item
-        if normalize:
+        if normalize and invert == False:
             self.wvf=self.wvf/max(self.wvf)
+        if normalize and invert == True:
+            self.wvf=self.wvf/max(-self.wvf)
         if trim == True:
             for i in range(len(self.wvf[np.argmax(self.wvf):])):
                 if self.wvf[np.argmax(self.wvf)+i]<0<self.wvf[np.argmax(self.wvf)+i+1]:
                     self.wvf = self.wvf[:np.argmax(self.wvf)+i+1]
                     break
-        if align == "True":
+        if align == "True" and invert == False:
             self.wvf=np.roll(self.wvf,start-np.argmax(self.wvf))
+        if align == "True" and invert == True:
+            self.wvf=np.roll(self.wvf,start-np.argmax(-self.wvf))
+
         self.timebin=timebin
         self.wvf=self.wvf[cut_i:len(self.wvf)-cut_f]
         N=len(self.wvf)
@@ -76,12 +81,12 @@ class my_wvf:
         self.wvf_deco_F=self.wvf_F/denominator
         self.wvf_deco=scipy.fft.irfft(self.wvf_deco_F)
 
-def import_scint_prof(path,timebin,normalize,trim,align,start,cut_i,cut_f):
+def import_scint_prof(path,timebin,normalize,trim,align,start,cut_i,cut_f,invert):
     inSiPMName = path
     inSiPM = ROOT.TFile.Open(inSiPMName ,"READ")
     listkeys_SiPM = inSiPM.GetListOfKeys()
     # print(listkeys_SiPM[0].GetName())
-    return my_wvf("vector",inSiPMName,listkeys_SiPM[0].GetName(),timebin,normalize,trim,align,start,cut_i,cut_f)
+    return my_wvf("vector",inSiPMName,listkeys_SiPM[0].GetName(),timebin,normalize,trim,align,start,cut_i,cut_f,invert)
 
 def tfile_hist2array(tfile,hist_path):
     file=TFile( tfile, 'READ' )
@@ -228,49 +233,53 @@ def import_deconv_runs(path,debug = False):
             detector = next_line.split()[1]
             if debug == True:
                 print("Detector: %s"%detector)
-        if next_line.startswith("timebin:"):
+        elif next_line.startswith("label:"):
+            label_particle = next_line.split()[1]
+            if debug == True:
+                print("Particle Label: %s"%label_particle)        
+        elif next_line.startswith("timebin:"):
             timebin = float(next_line.split()[1])
             if debug == True:
                 print("Timebin: %.2e"%timebin)
-        if next_line.startswith("int_st:"):
+        elif next_line.startswith("int_st:"):
             int_st = next_line.split()[1]
             if debug == True:
                 print("Integration Type: %s"%int_st)
-        if next_line.startswith("path:"):
+        elif next_line.startswith("path:"):
             base_dir = next_line.split()[1]
             paths[0]=base_dir
-        if next_line.startswith("path_alp:"):
+        elif next_line.startswith("path_alp:"):
             path_alp = next_line.split()[1]
             paths[1]=path_alp
-        if next_line.startswith("path_las:"):
+        elif next_line.startswith("path_las:"):
             path_las = next_line.split()[1]
             paths[2]=path_las
-        if next_line.startswith("path_spe:"):
+        elif next_line.startswith("path_spe:"):
             path_spe = next_line.split()[1]
             paths[3]=path_spe
-        if next_line.startswith("filename:"):
+        elif next_line.startswith("filename:"):
             filename = next_line.split()[1]
-        if next_line.startswith("shift:"):
+        elif next_line.startswith("shift:"):
             shift = next_line.split()[1]
             if debug == True:
                 print("Shiftting: %s"%shift)
-        if next_line.startswith("f_strength:"):
+        elif next_line.startswith("f_strength:"):
             f_stregth = int(next_line.split()[1])
             if debug == True:
                 print("Filter Strength: %i"%f_stregth)
-        if next_line.startswith("reverse:"):
+        elif next_line.startswith("reverse:"):
             reverse = next_line.split()[1]
-        if not next_line:
+        elif not next_line:
             break
-        if next_line.startswith("f_array_cut:"):
+        elif next_line.startswith("f_array_cut:"):
             f_cut = int(next_line.split()[1])
             if debug == True:
                 print("Array final cut: %i"%f_cut)
-        if next_line.startswith("i_array_cut:"):
+        elif next_line.startswith("i_array_cut:"):
             i_cut = int(next_line.split()[1])
             if debug == True:
                 print("Array initial cut: %i"%i_cut)    
     # print(next_line.strip())
     file.close()
 
-    return detector,timebin,int_st,paths,filename,shift,f_stregth,reverse,f_cut,i_cut
+    return detector,timebin,int_st,paths,filename,shift,f_stregth,reverse,f_cut,i_cut,label_particle

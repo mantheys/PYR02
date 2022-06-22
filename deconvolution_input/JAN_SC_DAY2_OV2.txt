@@ -9,5 +9,5 @@ filename: JAN_SC_DAY2_OV2
 shift: False
 f_strength: 25
 reverse: True
-i_array_cut: 700
-f_array_cut: 1800
+i_array_cut: 0
+f_array_cut: 0

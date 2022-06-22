@@ -21,7 +21,6 @@ laser = import_scint_prof(base_dir+path_luz,timebin,normalize=True,trim=False,al
 
 if np.argmax(alpha.wvf)-np.argmax(laser.wvf) > 0:
     laser.wvf = np.roll(np.array(laser.wvf),np.argmax(alpha.wvf)-np.argmax(laser[0].wvf))
-
 else:
     alpha.wvf = np.roll(np.array(alpha.wvf),np.argmax(laser.wvf)-np.argmax(alpha.wvf))
 
