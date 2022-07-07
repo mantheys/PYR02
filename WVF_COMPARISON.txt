@@ -1,0 +1,5 @@
+run23_ScintProfFirstSignalBin_PMT.root MUON
+run12_ScintProfFirstSignalBin_PMT.root ALPHA
+# run55_ScintProfFirstSignalBin_SC.root MUON_2
+# run05_ScintProfFirstSignalBin_PMT.root SPE
+run55_ScintProfFirstSignalBin_PMT.root LASER

@@ -22,7 +22,7 @@ def low_pass_filter(array,timebin,cut_off,grade):
 # WELCOME USER AND IMPORT CONFIG FILE WITH DATA PATHS AND DECONVOLUTION PARAMETERS
 print("\n### WELCOME TO THE DECONVOLUTION STUDIES ###\n")
 
-decon_runs = "deconvolution_input/FEB_2_SC_DAY2_OV2_MUON.txt"
+decon_runs = "deconvolution_input/FEB_SC_DAY1_OV2_MUON.txt"
 detector,timebin,int_st,paths,filename,shift,filter_strenght,reverse,fnal,s_start,particle_label = import_deconv_runs(decon_runs,debug = True)
 
 check       = False
@@ -92,7 +92,7 @@ print("\n-------------------------------------------------------------")
 ########################################################################
 
 # GAUSS FUNCTION IS CREATED IN FOURIER SPACE WITH AMP = 1 TO CONSERVE CHARGE
-wiener = abs(spe.wvf_F)**2/(abs(spe.wvf_F)**2+abs(noise.wvf_F)**2)
+# wiener = abs(spe.wvf_F)**2/(abs(spe.wvf_F)**2+abs(noise.wvf_F)**2)
 gauss_f = pdf(np.arange(len(alp.wvf_F_x)), m = 0, sd = filter_strenght, norm = 1, n = 2)
 d_freq = 1/(len(alp.wvf)*timebin)
 
