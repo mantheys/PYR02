@@ -13,7 +13,7 @@ file = "JAN_SC_DAY1_OV2_MUON_f150"
 # path = "/pnfs/ciemat.es/data/neutrinos/Eficiencia/GAr_Julio/AnalysisROOT/"
 # file = "ScintProfFirstSignalBin_run02_ch0"
 
-buffer1 = 40; buffer2 = 2000; double_sigma = False
+buffer1 = 40; buffer2 = 3900; double_sigma = False
 signal = import_scint_prof(path+file+".root",timebin = 4e-9,normalize=1,trim=0,align=False,start=0,cut_i=0,cut_f=0,invert=False)
 output_file = open("scint_fit/"+file+"_FIT.txt","w")
 
@@ -31,13 +31,13 @@ pedestal = np.mean(signal.wvf[-buffer2:])
 
 p = pedestal; p_low = pedestal*0.1; p_high = pedestal*10
 
-a1 = 9e-8; a1_low = 5e-10; a1_high = 9e-7                    
-a3 = 1e-8; a3_low = 5e-10; a3_high = 9e-8
+a1 = 1e-8; a1_low = 5e-10; a1_high = 9e-7                    
+a3 = 9e-8; a3_low = 5e-10; a3_high = 9e-7
 
 t0 = guess_t0; t0_low = guess_t0*0.1; t0_high = guess_t0*10
 
 tau1 = 6e-9; tau1_low = 1e-9; tau1_high = 5e-8
-tau3 = 1e-6; tau3_low = 1e-7; tau3_high = 9e-5
+tau3 = 1e-6; tau3_low = 1e-7; tau3_high = 5e-5
 
 sigma = 2e-8; sigma_low = 1e-9; sigma_high = 9e-8
 # sigma2 = 2e-8; sigma2_low = 1e-9; sigma2_high = 9e-8
@@ -64,6 +64,7 @@ p = popt[0];a1 = popt[1];sigma = popt[2];tau1 = popt[3];t0 = popt[4]
 plt.plot(signal.wvf_x,signal.wvf)
 plt.plot(signal.wvf_x[max_in-buffer1:max_in+int(buffer1/2)],func(signal.wvf_x[max_in-buffer1:max_in+int(buffer1/2)],*popt))
 plt.axvline(signal.wvf_x[-buffer2],ls = "--",c = "k")
+plt.xlabel("Time in s"); plt.ylabel("Amp in a.u.")
 plt.semilogy()
 plt.show()
 
@@ -109,6 +110,8 @@ for i in range(len(initial2)):
 print("--------------------------------\n")
 
 plt.plot(signal.wvf_x,signal.wvf,zorder=0)
+plt.xlabel("Time in s"); plt.ylabel("Amp in a.u.")
+plt.axvline(signal.wvf_x[-buffer2],ls = "--",c = "k")
 plt.semilogy()
 plt.show()
 output_file.close()
