@@ -7,13 +7,14 @@ from scipy.optimize import curve_fit
 from ir02_lib.deconv_lib import import_scint_prof,pdf,func,my_wvf,signal_int,import_deconv_runs
 from ir02_lib.fit_lib import func,func2,logfunc2,func2sigma,logfunc2sigma
 
-path = "/pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Jan22/Deconvolución/"
-file = "JAN_SC_DAY1_OV2_MUON_f150"
+# path = "/pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Jan22/Deconvolución/"
+# file = "JAN_SC_DAY1_OV2_MUON_f150"
 
-# path = "/pnfs/ciemat.es/data/neutrinos/Eficiencia/GAr_Julio/AnalysisROOT/"
-# file = "ScintProfFirstSignalBin_run02_ch0"
+# path = "/pnfs/ciemat.es/data/neutrinos/Eficiencia/GAr_Julio/AnalysisROOT/05_07_2022/"
+path = "/pnfs/ciemat.es/data/neutrinos/Eficiencia/GAr_Julio/AnalysisROOT/06_07_2022/"
+file = "ScintProfFirstSignalBin_run14_ch0"
 
-buffer1 = 40; buffer2 = 3900; double_sigma = False
+buffer1 = 200; buffer2 = 500; double_sigma = False
 signal = import_scint_prof(path+file+".root",timebin = 4e-9,normalize=1,trim=0,align=False,start=0,cut_i=0,cut_f=0,invert=False)
 output_file = open("scint_fit/"+file+"_FIT.txt","w")
 
@@ -27,19 +28,22 @@ max_in = np.argmax(signal.wvf)
 guess_t0 = signal.wvf_x[np.argmax(signal.wvf)-10]
 
 pedestal = np.mean(signal.wvf[-buffer2:])
+if pedestal > 1e-3:
+    pedestal = 1e-3
 # print(pedestal)
 
 p = pedestal; p_low = pedestal*0.1; p_high = pedestal*10
 
-a1 = 1e-8; a1_low = 5e-10; a1_high = 9e-7                    
-a3 = 9e-8; a3_low = 5e-10; a3_high = 9e-7
+a1 = 5e-8; a1_low = 5e-9; a1_high = 9e-7                    
+a3 = 5e-8; a3_low = 5e-9; a3_high = 1e-6
 
 t0 = guess_t0; t0_low = guess_t0*0.1; t0_high = guess_t0*10
 
-tau1 = 6e-9; tau1_low = 1e-9; tau1_high = 5e-8
-tau3 = 1e-6; tau3_low = 1e-7; tau3_high = 5e-5
+tau1 = 1e-7; tau1_low = 1e-9; tau1_high = 9e-7
+tau3 = 5e-6; tau3_low = tau1_high; tau3_high = 9e-5
 
-sigma = 2e-8; sigma_low = 1e-9; sigma_high = 9e-8
+# sigma = 1e-9; sigma_low = 1e-10; sigma_high = 5e-8
+sigma = 2e-7; sigma_low = 1e-10; sigma_high = 9e-7
 # sigma2 = 2e-8; sigma2_low = 1e-9; sigma2_high = 9e-8
 
 bounds = ([p_low,a1_low,sigma_low,tau1_low,t0_low],[p_high,a1_high,sigma_high,tau1_high,t0_high])

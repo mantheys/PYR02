@@ -50,7 +50,7 @@ if inv == True:
 # CALCULATE INTEGRAL OF RAW DATA
 labels = [particle_label,"Laser","SPE"]
 
-# CHECK INTEGRATION METHODS FOR RAW ALPHA SIGNALq
+# CHECK INTEGRATION METHODS FOR RAW ALPHA SIGNAL
 alp_int_all,f_alp_all,i_alp_all       = signal_int(labels[0],alp.wvf,timebin,detector,"ALL"  ,th = thrld,out = term_output)
 alp_int_thrld,f_alp_thrld,i_alp_thrld = signal_int(labels[0],alp.wvf,timebin,detector,"THRLD",th = thrld,out = term_output)
 

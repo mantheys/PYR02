@@ -7,6 +7,8 @@ from numpy import convolve
 from scipy.optimize import curve_fit
 from ROOT import TF2, TH1D, TF1, TFile, TCanvas
 from ROOT import gROOT
+from scipy.special import erf
+
 
 class my_wvf:
     smooth=False
@@ -214,15 +216,34 @@ def signal_int(name,data,timebin,detector,int_type,th=1e-3,i_range=10,f_range=10
 
     return integral,end_waveform*timebin,start_waveform*timebin
 
+def simple_2exp(x,t_fast,t_slow,amp_fast,amp_slow):
+    return (amp_fast/t_fast)*np.exp(-x/t_fast)+(amp_slow/t_slow)*np.exp(-x/t_slow)
+
 def conv_guess3(wvf,t_fast,t_int,t_slow,amp_fast,amp_int,amp_slow):
     resp = amp_fast*np.exp(-wvf.wvf_x/t_fast)+amp_int*np.exp(-wvf.wvf_x/t_int)+amp_slow*np.exp(-wvf.wvf_x/t_slow)
     conv = convolve(wvf.wvf,resp)
     return conv[:len(wvf.wvf_x)]/np.max(conv[:len(wvf.wvf_x)])
 
 def conv_guess2(wvf,t_fast,t_slow,amp_fast,amp_slow):
-    resp = amp_fast*np.exp(-wvf.wvf_x/t_fast)+amp_slow*np.exp(-wvf.wvf_x/t_slow)
+    resp = (amp_fast/t_fast)*np.exp(-wvf.wvf_x/t_fast)+(amp_slow/t_slow)*np.exp(-wvf.wvf_x/t_slow)
     conv = convolve(wvf.wvf,resp)
     return conv[:len(wvf.wvf_x)]/np.max(conv[:len(wvf.wvf_x)])
+
+def func(T,P,A,SIGMA,TAU,T0):
+    # P = 5e-6
+    return P+(2*A/TAU)*np.exp((SIGMA/(np.sqrt(2)*TAU))**2-(np.array(T)-T0)/TAU)*(1-erf((SIGMA**2-TAU*(np.array(T)-T0))/(np.sqrt(2)*SIGMA*TAU)))
+
+def func2(x,TAU1,TAU2,A1,A2,SIGMA):
+    return func(x,0,A1,SIGMA,TAU1,5e-8) + func(x,0,A2,SIGMA,TAU2,5e-8)
+
+def conv_func2(wvf,TAU1,TAU2,A1,A2,SIGMA):
+    resp = func(wvf.wvf_x,0,A1,SIGMA,TAU1,5e-8) + func(wvf.wvf_x,0,A2,SIGMA,TAU2,5e-8)
+    # resp = (amp_fast/t_fast)*np.exp(-wvf.wvf_x/t_fast)+(amp_slow/t_slow)*np.exp(-wvf.wvf_x/t_slow)
+    conv = convolve(wvf.wvf,resp)
+    conv = conv/np.max(conv)
+    wvf_max = np.argmax(wvf.wvf)
+    conv_max = np.argmax(conv)
+    return conv[conv_max-wvf_max:conv_max+len(wvf.wvf)-wvf_max]
 
 def import_deconv_runs(path,debug = False):
     file = open(path,'r')
