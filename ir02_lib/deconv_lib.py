@@ -234,10 +234,10 @@ def func(T,P,A,SIGMA,TAU,T0):
     return P+(2*A/TAU)*np.exp((SIGMA/(np.sqrt(2)*TAU))**2-(np.array(T)-T0)/TAU)*(1-erf((SIGMA**2-TAU*(np.array(T)-T0))/(np.sqrt(2)*SIGMA*TAU)))
 
 def func2(x,TAU1,TAU2,A1,A2,SIGMA):
-    return func(x,0,A1,SIGMA,TAU1,5e-8) + func(x,0,A2,SIGMA,TAU2,5e-8)
+    return func(x,0,A1,SIGMA,TAU1,1e-7) + func(x,0,A2,SIGMA,TAU2,1e-7)
 
 def conv_func2(wvf,TAU1,TAU2,A1,A2,SIGMA):
-    resp = func(wvf.wvf_x,0,A1,SIGMA,TAU1,5e-8) + func(wvf.wvf_x,0,A2,SIGMA,TAU2,5e-8)
+    resp = func(wvf.wvf_x,0,A1,SIGMA,TAU1,1e-7) + func(wvf.wvf_x,0,A2,SIGMA,TAU2,1e-7)
     # resp = (amp_fast/t_fast)*np.exp(-wvf.wvf_x/t_fast)+(amp_slow/t_slow)*np.exp(-wvf.wvf_x/t_slow)
     conv = convolve(wvf.wvf,resp)
     conv = conv/np.max(conv)

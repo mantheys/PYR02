@@ -11,10 +11,10 @@ from ir02_lib.fit_lib import func,func2,logfunc2,func2sigma,logfunc2sigma
 # file = "JAN_SC_DAY1_OV2_MUON_f150"
 
 # path = "/pnfs/ciemat.es/data/neutrinos/Eficiencia/GAr_Julio/AnalysisROOT/05_07_2022/"
-path = "/pnfs/ciemat.es/data/neutrinos/Eficiencia/GAr_Julio/AnalysisROOT/06_07_2022/"
-file = "ScintProfFirstSignalBin_run14_ch0"
+path = "/pnfs/ciemat.es/data/neutrinos/Eficiencia/GAr_Julio/AnalysisROOT/07_07_2022/"
+file = "ScintProfFirstSignalBin_run25_ch0"
 
-buffer1 = 200; buffer2 = 500; double_sigma = False
+buffer1 = 200; buffer2 = 1000; double_sigma = True
 signal = import_scint_prof(path+file+".root",timebin = 4e-9,normalize=1,trim=0,align=False,start=0,cut_i=0,cut_f=0,invert=False)
 output_file = open("scint_fit/"+file+"_FIT.txt","w")
 
@@ -39,12 +39,11 @@ a3 = 5e-8; a3_low = 5e-9; a3_high = 1e-6
 
 t0 = guess_t0; t0_low = guess_t0*0.1; t0_high = guess_t0*10
 
-tau1 = 1e-7; tau1_low = 1e-9; tau1_high = 9e-7
+tau1 = 1e-8; tau1_low = 1e-9; tau1_high = 9e-7
 tau3 = 5e-6; tau3_low = tau1_high; tau3_high = 9e-5
 
-# sigma = 1e-9; sigma_low = 1e-10; sigma_high = 5e-8
-sigma = 2e-7; sigma_low = 1e-10; sigma_high = 9e-7
-# sigma2 = 2e-8; sigma2_low = 1e-9; sigma2_high = 9e-8
+sigma = 2e-8; sigma_low = 1e-9; sigma_high = 1e-7
+
 
 bounds = ([p_low,a1_low,sigma_low,tau1_low,t0_low],[p_high,a1_high,sigma_high,tau1_high,t0_high])
 initial = (p,a1,sigma,tau1,t0)
@@ -63,6 +62,7 @@ print("-------------------------------\n")
 
 # EXPORT FIT PARAMETERS
 p = popt[0];a1 = popt[1];sigma = popt[2];tau1 = popt[3];t0 = popt[4]
+sigma2 = sigma; sigma2_low = sigma*0.1; sigma2_high = sigma*10
 
 # CHECK FIRST FIT
 plt.plot(signal.wvf_x,signal.wvf)
@@ -90,7 +90,7 @@ if double_sigma == False:
     output_file.write("%.2E \t\u00B1\t %.2E\n"%(a3,perr2[1]))
     output_file.write("%.2E \t\u00B1\t %.2E"%(tau3,perr2[2]))
 
-else:
+elif double_sigma == True:
     bounds2 = ([p_low,sigma2_low,a3_low,tau3_low],[p_high,sigma2_high,a3_high,tau3_high])
     initial2 = (p/2,sigma2,a3,tau3)
     labels2 = ["PED","SIGMA","AMP","TAU"]
@@ -102,11 +102,11 @@ else:
     output_file.write("%.2E \t\u00B1\t %.2E\n"%(p,perr2[0]))
     output_file.write("%.2E \t\u00B1\t %.2E\n"%(t0,perr1[4]))
     output_file.write("%.2E \t\u00B1\t %.2E\n"%(sigma,perr1[2]))
-    output_file.write("%.2E \t\u00B1\t %.2E\n"%(sigma2,perr2[1]))
     output_file.write("%.2E \t\u00B1\t %.2E\n"%(a1,perr1[1]))
     output_file.write("%.2E \t\u00B1\t %.2E\n"%(tau1,perr1[3]))
     output_file.write("%.2E \t\u00B1\t %.2E\n"%(a3,perr2[2]))
     output_file.write("%.2E \t\u00B1\t %.2E"%(tau3,perr2[3]))
+    output_file.write("%.2E \t\u00B1\t %.2E\n"%(sigma2,perr2[1]))
 
 print("\n--- SECOND FIT VALUES (SLOW) ---")
 for i in range(len(initial2)):

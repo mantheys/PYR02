@@ -13,9 +13,10 @@ from ir02_lib.deconv_lib import import_scint_prof,my_wvf,conv_guess2, conv_guess
 base_dir = '/pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Feb22_2/AnalysisROOT/'
 
 path_luz = 'run02_ScintProfFirstSignalBin_SC.root'; label_luz = "SC SPE Signal"
-path_alp = 'run34_ScintProfFirstSignalBin_SC.root'; label_alp = "SC MUON Signal"
+path_alp = 'run55_ScintProfFirstSignalBin_SC.root'; label_alp = "SC MUON Signal"
 
 timebin = 4e-9
+norm    = True
 detector= "SC"
 thrld   = 1e-5 
 inv     = False
@@ -23,8 +24,8 @@ simple  = False
 logy    = False
 pro_func= True
 
-alpha = import_scint_prof(base_dir+path_alp,timebin,normalize=True,trim=False,align=True,start=400,cut_i=0,cut_f=0,invert=inv)
-laser = import_scint_prof(base_dir+path_luz,timebin,normalize=True,trim=False,align=True,start=400,cut_i=0,cut_f=0,invert=inv)
+alpha = import_scint_prof(base_dir+path_alp,timebin,normalize=norm,trim=False,align=True,start=400,cut_i=0,cut_f=0,invert=inv)
+laser = import_scint_prof(base_dir+path_luz,timebin,normalize=norm,trim=False,align=True,start=400,cut_i=0,cut_f=0,invert=inv)
 
 luz_int,f_luz,i_luz = signal_int(label_luz,laser.wvf,timebin,detector,"BASEL",th = thrld,out = True)
 alp_int,f_alp,i_alp = signal_int(label_alp,alpha.wvf,timebin,detector,"BASEL",th = thrld,out = True)
@@ -66,7 +67,7 @@ sigma = 2e-8
 if pro_func == True:
     fit_initials = (t_fast,t_slow,amp_fast,amp_slow,sigma)
     fit_limits = ([1e-9,1e-7,1e-9,1e-9,1e-9],[9e-8,1e-5,1e-7,1e-7,1e-7])
-    popt, pcov = curve_fit(conv_func2,laser,alpha.wvf, p0 = fit_initials, bounds = fit_limits)
+    popt, pcov = curve_fit(conv_func2,laser,alpha.wvf, p0 = fit_initials, bounds = fit_limits,method="trf")
     conv = conv_func2(laser,*popt)
     conv_int,f_conv,i_conv = signal_int("CONV FUNC",func2(alpha.wvf_x,*popt),timebin,"SiPM","MIXED",th = thrld,out = True)
     print(100*(conv_int/alp_int-1))
