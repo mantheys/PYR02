@@ -1,0 +1,16 @@
+path: /pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Jan22/AnalysisROOT/
+detector: SC
+timebin: 4e-9
+int_st: BASEL
+label: Muon
+path_alp: run47_ScintProfFirstSignalBin_SC.root
+path_las: run56_ScintProfFirstSignalBin_SC.root
+path_spe: run68_ScintProfFirstSignalBin_SC.root
+filename: JAN_SC_DAY2_OV2_MUON
+shift: True
+f_strength: 100
+reverse: False
+i_array_cut: 500
+f_array_cut: 600
+
+PROBLEMS WITH LASER WVF

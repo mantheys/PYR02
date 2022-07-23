@@ -1,0 +1,15 @@
+path: /pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Feb22_2/AnalysisROOT/
+detector: SiPM
+timebin: 4e-9
+int_st: BASEL
+label: Alpha
+path_alp: run123_ScintProfFirstSignalBin_SiPM.root
+path_las: run09_ScintProfFirstSignalBin_SiPM.root
+path_spe: run35_ScintProfFirstSignalBin_SiPM.root
+# path_spe: run112_ScintProfFirstSignalBin_SiPM.root FALTA RUN 112
+filename: FEB_2_SiPM_DAY4_OV1
+shift: True
+f_strength: 100
+reverse: False
+i_array_cut: 500
+f_array_cut: 500

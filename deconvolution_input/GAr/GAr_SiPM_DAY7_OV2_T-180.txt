@@ -1,0 +1,14 @@
+path: /pnfs/ciemat.es/data/neutrinos/Eficiencia/GAr_Julio/AnalysisROOT/07_07_2022/
+detector: SiPM
+timebin: 4e-9
+int_st: MIXED
+label: Alpha
+path_alp: ScintProfFirstSignalBin_run24_ch0.root
+path_las: ScintProfFirstSignalBin_run20_ch0.root
+path_spe: ScintProfFirstSignalBin_run20_ch0.root
+filename: GAr_SiPM_DAY7_OV2_T-180
+shift: True
+f_strength: 120
+reverse: False
+i_array_cut: 500
+f_array_cut: 500

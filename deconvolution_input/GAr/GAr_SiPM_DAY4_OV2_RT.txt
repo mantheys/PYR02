@@ -1,0 +1,15 @@
+path: /pnfs/ciemat.es/data/neutrinos/Eficiencia/GAr_Julio/AnalysisROOT/04_07_2022/
+detector: SiPM
+timebin: 4e-9
+int_st: MIXED
+label: Alpha
+path_alp: ScintProfFirstSignalBin_run02_ch0.root
+path_las: ScintProfFirstSignalBin_run21_ch0.root
+path_spe: ScintProfFirstSignalBin_run21_ch0.root
+filename: GAr_SiPM_DAY4_OV2_RT
+shift: True
+f_strength: 20
+reverse: False
+i_array_cut: 200
+f_array_cut: 0
+# CUT ALPHA BY HAND 6250

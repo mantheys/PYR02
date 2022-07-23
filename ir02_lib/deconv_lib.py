@@ -9,9 +9,8 @@ from ROOT import TF2, TH1D, TF1, TFile, TCanvas
 from ROOT import gROOT
 from scipy.special import erf
 
-
 class my_wvf:
-    smooth=False
+    smooth=True
     kernel_Done=False
     def __init__(self,f_type="",file_path="",item_path="",timebin=4e-9,normalize=False,trim=False,align="False",start=100,cut_i=0,cut_f=0,invert=False,item=np.zeros(1)):
         if f_type == "hist":
@@ -41,7 +40,7 @@ class my_wvf:
         self.doFFT()
         
     def apply_smooth(self,alfa):
-        if self.smooth==False:
+        if self.smooth==True:
             self.wvf=expo_average(self.wvf,alfa)
             self.wvf=unweighted_average(self.wvf)
             self.smooth=True
@@ -140,7 +139,7 @@ def pdf(x, m, sd, norm ="standard", n=2):
     
     return y_out
 
-def signal_int(name,data,timebin,detector,int_type,th=1e-3,i_range=10,f_range=1000,out=False):
+def signal_int(name,data,timebin,detector,int_type,th,i_range=10,f_range=1000,out=False):
     detector_list = ["SiPM","PMT","SC"]
     conv_factor = [250,50,1030]
     for det in range(len(detector_list)):
@@ -177,8 +176,11 @@ def signal_int(name,data,timebin,detector,int_type,th=1e-3,i_range=10,f_range=10
         for j in range(len(data[:max_index])):
             if data[max_index-j] <= th:
                 start_waveform = max_index-j
-                break       
-        end_waveform = max_index+2000
+                break
+        end_time = 1800
+        if end_time > len(data)- max_index:
+            end_time = len(data)- max_index       
+        end_waveform = max_index + end_time
 
         integral =  1e12*timebin*np.sum(data[start_waveform:end_waveform])/factor    
 
@@ -237,13 +239,23 @@ def func2(x,TAU1,TAU2,A1,A2,SIGMA):
     return func(x,0,A1,SIGMA,TAU1,1e-7) + func(x,0,A2,SIGMA,TAU2,1e-7)
 
 def conv_func2(wvf,TAU1,TAU2,A1,A2,SIGMA):
-    resp = func(wvf.wvf_x,0,A1,SIGMA,TAU1,1e-7) + func(wvf.wvf_x,0,A2,SIGMA,TAU2,1e-7)
-    # resp = (amp_fast/t_fast)*np.exp(-wvf.wvf_x/t_fast)+(amp_slow/t_slow)*np.exp(-wvf.wvf_x/t_slow)
-    conv = convolve(wvf.wvf,resp)
+    # resp = func(wvf.wvf_x,0,A1,SIGMA,TAU1,1e-7) + func(wvf.wvf_x,0,A2,SIGMA,TAU2,1e-7)
+    resp = func(wvf[0],0,A1,SIGMA,TAU1,1e-7) + func(wvf[0],0,A2,SIGMA,TAU2,1e-7)
+    
+    conv = convolve(wvf[1],resp)
     conv = conv/np.max(conv)
-    wvf_max = np.argmax(wvf.wvf)
+    wvf_max = np.argmax(wvf[1])
     conv_max = np.argmax(conv)
-    return conv[conv_max-wvf_max:conv_max+len(wvf.wvf)-wvf_max]
+    return conv[conv_max-wvf_max:conv_max+len(wvf[1])-wvf_max]
+
+def logconv_func2(wvf,TAU1,TAU2,A1,A2,SIGMA):
+    # resp = func(wvf.wvf_x,0,A1,SIGMA,TAU1,1e-7) + func(wvf.wvf_x,0,A2,SIGMA,TAU2,1e-7)
+    resp = np.log(func(wvf[0],1e-6,A1,SIGMA,TAU1,1e-7) + func(wvf[0],1e-6,A2,SIGMA,TAU2,1e-7))
+    conv = convolve(wvf[1],resp)
+    conv = conv/np.max(conv)
+    wvf_max = np.argmax(wvf[1])
+    conv_max = np.argmax(conv)
+    return conv[conv_max-wvf_max:conv_max+len(wvf[1])-wvf_max]
 
 def import_deconv_runs(path,debug = False):
     file = open(path,'r')
@@ -304,3 +316,11 @@ def import_deconv_runs(path,debug = False):
     file.close()
 
     return detector,timebin,int_st,paths,filename,shift,f_stregth,reverse,f_cut,i_cut,label_particle
+
+def low_pass_filter(array,timebin,cut_off,grade):
+    fc = cut_off  # Cut-off frequency of the filter
+    d_freq = 1/(timebin*len(array))
+    w = fc/(d_freq/2) # Normalize the frequency
+    b, a = signal.butter(grade, w, 'low')
+    output = signal.filtfilt(b,a,array,method='gust')
+    return output

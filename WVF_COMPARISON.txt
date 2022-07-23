@@ -1,5 +1,7 @@
-run23_ScintProfFirstSignalBin_PMT.root MUON
-run12_ScintProfFirstSignalBin_PMT.root ALPHA
-# run55_ScintProfFirstSignalBin_SC.root MUON_2
-# run05_ScintProfFirstSignalBin_PMT.root SPE
-run55_ScintProfFirstSignalBin_PMT.root LASER
+/afs/ciemat.es/user/m/manthey/PYR02/deconvolution_input/GAr/GAr_SiPM_DAY4_OV2_RT_f20.root GAr_ALPHA_RT
+/afs/ciemat.es/user/m/manthey/PYR02/deconvolution_input/GAr/GAr_SiPM_DAY7_OV2_T-10_f80.root GAr_ALPHA_T-10
+/afs/ciemat.es/user/m/manthey/PYR02/deconvolution_input/GAr/GAr_SiPM_DAY7_OV2_T-50_f40.root GAr_ALPHA_T-50
+/afs/ciemat.es/user/m/manthey/PYR02/deconvolution_input/GAr/GAr_SiPM_DAY6_OV2_T-100_f45.root GAr_ALPHA_T-100
+/afs/ciemat.es/user/m/manthey/PYR02/deconvolution_input/GAr/GAr_SiPM_DAY7_OV2_T-180_f120.root GAr_ALPHA_T-180
+/pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Feb22_2/Deconvolución/FEB_2_SiPM_DAY1_OV2_f100.root LAr_ALPHA_FEB2
+/pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Feb22/Deconvolución/FEB_SiPM_DAY2_OV2_f100.root LAr_ALPHA_FEB

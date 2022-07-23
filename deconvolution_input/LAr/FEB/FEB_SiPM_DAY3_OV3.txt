@@ -1,0 +1,15 @@
+path: /pnfs/ciemat.es/data/neutrinos/Super-cells_LAr/Feb22/AnalysisROOT/
+detector: SiPM
+timebin: 4e-9
+int_st: MIXED
+label: Alpha
+path_alp: run104_ScintProfFirstSignalBin_SiPM.root
+path_las: run47_ScintProfFirstSignalBin_SiPM.root
+path_spe: run24_ScintProfFirstSignalBin_SiPM.root
+# FLATA RUN SPE 93
+filename: FEB_SiPM_DAY3_OV3
+shift: True
+f_strength: 100
+reverse: False
+i_array_cut: 500
+f_array_cut: 500
