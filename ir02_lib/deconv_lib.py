@@ -12,7 +12,7 @@ from scipy.special import erf
 class my_wvf:
     smooth=True
     kernel_Done=False
-    def __init__(self,f_type="",file_path="",item_path="",timebin=4e-9,normalize=False,trim=False,align="False",start=100,cut_i=0,cut_f=0,invert=False,item=np.zeros(1)):
+    def __init__(self,f_type="",file_path="",item_path="",timebin=4e-9,normalize=False,trim=False,align=False,start=100,cut_i=0,cut_f=0,invert=False,item=np.zeros(1)):
         if f_type == "hist":
             self.wvf = tfile_hist2array(file_path,item_path)
         if f_type =="vector":
@@ -28,13 +28,13 @@ class my_wvf:
                 if self.wvf[np.argmax(self.wvf)+i]<0<self.wvf[np.argmax(self.wvf)+i+1]:
                     self.wvf = self.wvf[:np.argmax(self.wvf)+i+1]
                     break
-        if align == "True" and invert == False:
+        if align == True and invert == False:
             self.wvf=np.roll(self.wvf,start-np.argmax(self.wvf))
-        if align == "True" and invert == True:
+        if align == True and invert == True:
             self.wvf=np.roll(self.wvf,start-np.argmax(-self.wvf))
 
-        self.timebin=timebin
-        self.wvf=self.wvf[cut_i:len(self.wvf)-cut_f]
+        self.timebin = timebin
+        self.wvf = self.wvf[cut_i:len(self.wvf)-cut_f]
         N=len(self.wvf)
         self.wvf_x = np.linspace(0,N*timebin,N)
         self.doFFT()
@@ -82,18 +82,18 @@ class my_wvf:
         self.wvf_deco_F=self.wvf_F/denominator
         self.wvf_deco=scipy.fft.irfft(self.wvf_deco_F)
 
+def nonblank_lines(f):
+    for l in f:
+        line = l.rstrip()
+        if line:
+            yield line
+
 def import_scint_prof(path,timebin,normalize,trim,align,start,cut_i,cut_f,invert):
     inSiPMName = path
     inSiPM = ROOT.TFile.Open(inSiPMName ,"READ")
     listkeys_SiPM = inSiPM.GetListOfKeys()
     # print(listkeys_SiPM[0].GetName())
     return my_wvf("vector",inSiPMName,listkeys_SiPM[0].GetName(),timebin,normalize,trim,align,start,cut_i,cut_f,invert)
-
-def tfile_hist2array(tfile,hist_path):
-    file=TFile( tfile, 'READ' )
-    h=file.Get(hist_path)
-    a=root_numpy.hist2array(h)
-    return a
 
 def tfile_vect2array(tfile,hist_path):
     file=TFile( tfile, 'READ' )
@@ -121,10 +121,6 @@ def unweighted_average(vector):
     for i in range (len(vector)-2):
         v_averaged[i+1]=(vector[i]+vector[i+1]+vector[i+2])/3
     return v_averaged
-
-def plot_F(mps):
-    for mp in mps:
-        plt.plot(mp[1]/units[0],np.abs(mp[0]))
 
 def func(x, a, c):
     return a*np.exp(-x/c)
@@ -177,9 +173,13 @@ def signal_int(name,data,timebin,detector,int_type,th,i_range=10,f_range=1000,ou
             if data[max_index-j] <= th:
                 start_waveform = max_index-j
                 break
-        end_time = 1800
+        end_time = 2000
+        for j in range(len(data[max_index:])):
+            if np.mean(data[max_index+j-10:max_index+j]) <= th:
+                end_time = max_index+j
+                break
         if end_time > len(data)- max_index:
-            end_time = len(data)- max_index       
+            end_time = len(data)- max_index                
         end_waveform = max_index + end_time
 
         integral =  1e12*timebin*np.sum(data[start_waveform:end_waveform])/factor    
@@ -257,63 +257,66 @@ def logconv_func2(wvf,TAU1,TAU2,A1,A2,SIGMA):
     conv_max = np.argmax(conv)
     return conv[conv_max-wvf_max:conv_max+len(wvf[1])-wvf_max]
 
+def str2bool(v):
+  return v.lower() in ("True", "true", "t", "1", "yes", "Yes")
+
 def import_deconv_runs(path,debug = False):
-    file = open(path,'r')
     paths = ["","","",""]
-    while True:
-        next_line = file.readline()
-        if next_line.startswith("detector:"):
-            detector = next_line.split()[1]
-            if debug == True:
-                print("Detector: %s"%detector)
-        elif next_line.startswith("label:"):
-            label_particle = next_line.split()[1]
-            if debug == True:
-                print("Particle Label: %s"%label_particle)        
-        elif next_line.startswith("timebin:"):
-            timebin = float(next_line.split()[1])
-            if debug == True:
-                print("Timebin: %.2e"%timebin)
-        elif next_line.startswith("int_st:"):
-            int_st = next_line.split()[1]
-            if debug == True:
-                print("Integration Type: %s"%int_st)
-        elif next_line.startswith("path:"):
-            base_dir = next_line.split()[1]
-            paths[0]=base_dir
-        elif next_line.startswith("path_alp:"):
-            path_alp = next_line.split()[1]
-            paths[1]=path_alp
-        elif next_line.startswith("path_las:"):
-            path_las = next_line.split()[1]
-            paths[2]=path_las
-        elif next_line.startswith("path_spe:"):
-            path_spe = next_line.split()[1]
-            paths[3]=path_spe
-        elif next_line.startswith("filename:"):
-            filename = next_line.split()[1]
-        elif next_line.startswith("shift:"):
-            shift = next_line.split()[1]
-            if debug == True:
-                print("Shiftting: %s"%shift)
-        elif next_line.startswith("f_strength:"):
-            f_stregth = int(next_line.split()[1])
-            if debug == True:
-                print("Filter Strength: %i"%f_stregth)
-        elif next_line.startswith("reverse:"):
-            reverse = next_line.split()[1]
-        elif not next_line:
-            break
-        elif next_line.startswith("f_array_cut:"):
-            f_cut = int(next_line.split()[1])
-            if debug == True:
-                print("Array final cut: %i"%f_cut)
-        elif next_line.startswith("i_array_cut:"):
-            i_cut = int(next_line.split()[1])
-            if debug == True:
-                print("Array initial cut: %i"%i_cut)    
-    # print(next_line.strip())
-    file.close()
+    with open(path,'r') as f_in:
+        for next_line in nonblank_lines(f_in):
+            # while True:
+                # next_line = file.readline()
+            if next_line.startswith("detector:"):
+                detector = next_line.split()[1]
+            elif next_line.startswith("label:"):
+                label_particle = next_line.split()[1]
+            elif next_line.startswith("timebin:"):
+                timebin = float(next_line.split()[1])
+            elif next_line.startswith("int_st:"):
+                int_st = next_line.split()[1]
+            elif next_line.startswith("path:"):
+                try:
+                    base_dir = next_line.split()[1]
+                except:
+                    base_dir = "/"        
+                paths[0]=base_dir
+            elif next_line.startswith("path_alp:"):
+                path_alp = next_line.split()[1]
+                paths[1]=path_alp
+                print("Signal file: %s"%(base_dir+path_alp))
+            elif next_line.startswith("path_las:"):
+                path_las = next_line.split()[1]
+                paths[2]=path_las
+            elif next_line.startswith("path_spe:"):
+                path_spe = next_line.split()[1]
+                paths[3]=path_spe
+            elif next_line.startswith("filename:"):
+                filename = next_line.split()[1]
+            elif next_line.startswith("shift:"):
+                shift = next_line.split()[1]
+                shift = str2bool(shift)
+            elif next_line.startswith("f_strength:"):
+                f_stregth = int(next_line.split()[1])
+            elif next_line.startswith("reverse:"):
+                reverse = next_line.split()[1]
+            elif not next_line:
+                break
+            elif next_line.startswith("f_array_cut:"):
+                f_cut = int(next_line.split()[1])
+            elif next_line.startswith("i_array_cut:"):
+                i_cut = int(next_line.split()[1])
+            
+        if debug == True:
+            print("Detector: %s"%detector)
+            print("Particle Label: %s"%label_particle)        
+            print("Timebin: %.2e"%timebin)
+            print("Integration Type: %s"%int_st)
+            print("Shiftting: %s"%shift)
+            print("Filter Strength: %i"%f_stregth)
+            print("Array final cut: %i"%f_cut)
+            print("Array initial cut: %i"%i_cut)    
+        # print(next_line.strip())
+        # file.close()
 
     return detector,timebin,int_st,paths,filename,shift,f_stregth,reverse,f_cut,i_cut,label_particle
 
@@ -321,8 +324,8 @@ def low_pass_filter(array,timebin,cut_off,grade):
     fc = cut_off  # Cut-off frequency of the filter
     d_freq = 1/(timebin*len(array))
     w = fc/(d_freq/2) # Normalize the frequency
-    b, a = signal.butter(grade, w, 'low')
-    output = signal.filtfilt(b,a,array,method='gust')
+    b, a = array.butter(grade, w, 'low')
+    output = array.filtfilt(b,a,array,method='gust')
     return output
 
 def terminal_input():
