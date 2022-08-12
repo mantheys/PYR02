@@ -31,9 +31,7 @@ term_output = check
 # SELECT THE RIGHT TIME BIN FOR ACCURATE PLOT REPRESENATION
 init=0; trm = False; #fnal=500; s_start = 600;
 alp = import_scint_prof(paths[0]+paths[1],timebin,normalize=norm,trim=trm,align=shift,start=s_start,cut_i=init,cut_f=fnal,invert=inv)
-# alp = import_scint_prof(paths[0]+paths[1],timebin,normalize=norm,trim=trm,align=shift,start=s_start,cut_i=init,cut_f=5000,invert=inv)
 las = import_scint_prof(paths[0]+paths[2],timebin,normalize=norm,trim=trm,align=shift,start=s_start,cut_i=init,cut_f=fnal,invert=False)
-# las = import_scint_prof(paths[0]+paths[2],timebin,normalize=norm,trim=trm,align=shift,start=s_start,cut_i=init,cut_f=0,invert=False)
 spe = import_scint_prof(paths[0]+paths[3],timebin,normalize=norm,trim=trm,align=shift,start=s_start,cut_i=init,cut_f=fnal,invert=False)
 
 if inv == True:
@@ -110,21 +108,21 @@ gauss = np.roll(gauss,int(len(gauss)/2))
 # wiener = abs(spe.wvf_F)**2/(abs(spe.wvf_F)**2+abs(noise.wvf_F)**2)
 
 # CHECK GAUSS BELL PROPERTIES
-if check == True:
-    gauss_int,f_gauss,i_gauss = signal_int("Gauss",gauss,timebin,detector,"BASEL",th = np.max(gauss)*1e-3,out = term_output)
-    signal_int("Gauss",gauss,timebin,detector,"ALL",th = 1e-3,out = True)
-    fwhm = timebin*2*np.sqrt(2*np.log(2))*filter_strenght
-    print("\nGaussian FWHM: %.2e [s]"%fwhm)
-    plt.xlabel("Time in [s]");plt.ylabel("Amplitude in a.u.")
-    # plt.axvline(f_gauss,color = "k", ls = ":");plt.axvline(i_gauss,color = "k", ls = ":")
-    plt.axvline(alp.wvf_x[np.argmax(gauss)])
-    plt.axvline(alp.wvf_x[np.argmax(gauss)]+fwhm/2)
-    plt.axvline(alp.wvf_x[np.argmax(gauss)]-fwhm/2)
-    plt.plot(alp.wvf_x,gauss)
+# if check == True:
+#     gauss_int,f_gauss,i_gauss = signal_int("Gauss",gauss,timebin,detector,"BASEL",th = np.max(gauss)*1e-3,out = term_output)
+#     signal_int("Gauss",gauss,timebin,detector,"ALL",th = 1e-3,out = True)
+#     fwhm = timebin*2*np.sqrt(2*np.log(2))*filter_strenght
+#     print("\nGaussian FWHM: %.2e [s]"%fwhm)
+#     plt.xlabel("Time in [s]");plt.ylabel("Amplitude in a.u.")
+#     # plt.axvline(f_gauss,color = "k", ls = ":");plt.axvline(i_gauss,color = "k", ls = ":")
+#     plt.axvline(alp.wvf_x[np.argmax(gauss)])
+#     plt.axvline(alp.wvf_x[np.argmax(gauss)]+fwhm/2)
+#     plt.axvline(alp.wvf_x[np.argmax(gauss)]-fwhm/2)
+#     plt.plot(alp.wvf_x,gauss)
     
-    if autozoom == True:
-        plt.xlim(i_gauss,f_gauss)
-    plt.show()
+#     if autozoom == True:
+#         plt.xlim(i_gauss,f_gauss)
+#     plt.show()
 
 filt_power = 1
 
